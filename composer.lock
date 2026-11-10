@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "70c04a7a6f33958549c6c2c815b851ac",
+    "content-hash": "bdbbffb009b99d47fb5bd79a052bc6de",
     "packages": [
         {
             "name": "limegreentangerine/class_kit",
@@ -109,6 +109,53 @@
                 "source": "https://github.com/limegreentangerine/LGTToolkit/tree/1.0.11"
             },
             "time": "2026-11-06T16:42:23+00:00"
+        },
+        {
+            "name": "limegreentangerine/mapbox_kit",
+            "version": "1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/limegreentangerine/MapboxKit.git",
+                "reference": "0fe3754396359ed8273c5b5093e36b44428d5fa4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/limegreentangerine/MapboxKit/zipball/0fe3754396359ed8273c5b5093e36b44428d5fa4",
+                "reference": "0fe3754396359ed8273c5b5093e36b44428d5fa4",
+                "shasum": ""
+            },
+            "require": {
+                "limegreentangerine/class_kit": "^2.0"
+            },
+            "require-dev": {
+                "concrete5/core": "^9.2",
+                "friendsofphp/php-cs-fixer": "^3.95",
+                "php": "^8.4",
+                "phpstan/phpstan": "^2.2",
+                "phpunit/phpunit": "^11"
+            },
+            "type": "concrete5-package",
+            "autoload": {
+                "psr-4": {
+                    "MapboxKit\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "proprietary"
+            ],
+            "authors": [
+                {
+                    "name": "Dave Hendy",
+                    "email": "david@limegreentangerine.co.uk"
+                }
+            ],
+            "description": "A custom ConcreteCMS package for displaying maps through the Mapbox system",
+            "support": {
+                "issues": "https://github.com/limegreentangerine/MapboxKit/issues",
+                "source": "https://github.com/limegreentangerine/MapboxKit/tree/1.0.3"
+            },
+            "time": "2026-11-05T12:45:29+00:00"
         },
         {
             "name": "limegreentangerine/theme_kit",

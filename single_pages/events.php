@@ -78,9 +78,13 @@ if ($image) {
 
     <?php if ($video) { ?>
         <video class="em-event-detail__video" controls preload="metadata"<?php echo ($poster || $image) ? ' poster="' . h(($poster ?: $image)->getURL()) . '"' : ''; ?> src="<?php echo h($video->getURL()); ?>"></video>
-    <?php } elseif ($image) { ?>
-        <img class="em-event-detail__image" src="<?php echo h($image->getURL()); ?>" alt="<?php echo h($event->getName($locale)); ?>">
-    <?php } ?>
+    <?php } elseif ($image) {
+        \View::element('picture', [
+            'f' => $image,
+            'alt' => $event->getName($locale),
+            'class' => 'em-event-detail__image',
+        ]);
+    } ?>
 
     <dl class="em-event-detail__facts">
         <dt><?php echo t('When'); ?></dt>

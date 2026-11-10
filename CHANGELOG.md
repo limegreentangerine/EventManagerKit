@@ -61,8 +61,20 @@ no-store`), so pages holding them can be cached without showing stale
   a per-line error report, "check only" mode, all-or-nothing transaction, and
   re-uploads skip events already imported.
 
+### Fixed
+
+- CSV import reported unknown locales only for `name_` columns; it now checks
+  every locale column (location, type, tags) and reports each locale once.
+- The import page's example header lists every site locale, not just two.
+
 ### Changed
 
+- `limegreentangerine/mapbox_kit` is now a Composer requirement (the `mapbox`
+  Concrete package is still only needed for maps and geocoding).
+- The CSV import upload limit now follows the server's PHP upload limit instead
+  of a fixed 5 MB, and the import page shows it.
+- Event page images render through Concrete's `picture` element (responsive
+  and themeable).
 - Event List block handle is `em_event_list`: Concrete core already owns
   `event_list`, which silently shadowed ours.
 - Renamed the template placeholders to `event_manager_kit` / `EventManagerKit`.

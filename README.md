@@ -27,7 +27,8 @@ namespace `EventManagerKit`.
   `GET /ajax/events-manager/feed.ics`.
 - **Sitemap**: published events are added to Concrete's `sitemap.xml`.
 - **CSV import**: validated up front and written in one transaction;
-  re-uploads skip events already imported.
+  re-uploads skip events already imported. The upload limit follows the
+  server's PHP settings and is shown on the import page.
 
 Status: not yet released (see `CHANGELOG.md`).
 
@@ -40,8 +41,11 @@ Status: not yet released (see `CHANGELOG.md`).
 - Access to the private Composer registry at
   `https://packages.limegreentangerine.net` to install private dependencies.
 
-The package requires `limegreentangerine/class_kit` and uses Concrete CMS 9.2
-and PHPUnit 11 for development. `mapbox` (MapboxKit) is optional.
+The package requires `limegreentangerine/class_kit`, `theme_kit` and
+`mapbox_kit` (MapboxKit), and uses Concrete CMS 9.2 and PHPUnit 11 for
+development. Maps and address geocoding only work once the `mapbox` package is
+installed in Concrete and has an API key; without it the event page falls back
+to a "View on map" link.
 
 After changing entity columns, bump `$pkgVersion` in `controller.php`, then
 upgrade the package in the dashboard and clear the cache.

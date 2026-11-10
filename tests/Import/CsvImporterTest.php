@@ -36,6 +36,19 @@ final class CsvImporterTest extends TestCase
         $this->assertSame(['en_GB' => 'Year 2', 'cy_GB' => 'Blwyddyn 2'], $row->tags[1]);
     }
 
+    public function testThreeLocalesAndUnknownLocaleInAnyColumn(): void
+    {
+        $h = fopen('php://memory', 'r+');
+        fwrite($h, "start,end,name_en_GB,name_cy_GB,name_fr_FR,tags_fr_FR\n2026-05-15,2026-05-15,A,B,C,x\n");
+        rewind($h);
+        $plan = (new CsvImporter())->parse($h, ['en_GB', 'cy_GB', 'fr_FR']);
+        $this->assertSame([], $plan->errors);
+        $this->assertSame(['en_GB' => 'A', 'cy_GB' => 'B', 'fr_FR' => 'C'], $plan->rows[0]->names);
+
+        $plan = $this->parse("start,end,name_en_GB,tags_de_DE\n2026-05-15,2026-05-15,A,x\n");
+        $this->assertCount(1, $plan->errors);
+    }
+
     public function testDateOnlyRowsAreAllDay(): void
     {
         $plan = $this->parse("start,end,name_en_GB\n2026-05-15,2026-05-16,Fete\n");

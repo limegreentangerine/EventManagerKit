@@ -1,6 +1,5 @@
 <?php defined('C5_EXECUTE') or die('Access Denied.');
 $first = $locales[0] ?? 'en_GB';
-$second = $locales[1] ?? null;
 ?>
 
 <form method="post" enctype="multipart/form-data" action="<?php echo h($view->action('run_import')); ?>">
@@ -12,6 +11,7 @@ $second = $locales[1] ?? null;
         <div class="form-group mb-3">
             <label class="form-label" for="csv_file"><?php echo t('CSV file'); ?></label>
             <input type="file" name="csv_file" id="csv_file" accept=".csv,text/csv" class="form-control" required>
+            <div class="form-text"><?php echo t('Maximum file size: %s MB', $maxUploadMb); ?></div>
         </div>
 
         <div class="form-check mb-3">
@@ -51,5 +51,5 @@ $second = $locales[1] ?? null;
     <tr><td><code>type_<?php echo h($first); ?></code></td><td><?php echo t('Optional event type.'); ?></td></tr>
     <tr><td><code>tags_<?php echo h($first); ?></code></td><td><?php echo t('Optional, separated by semicolons. Every locale must list the same number of tags, in the same order.'); ?></td></tr>
 </table>
-<p class="text-muted"><?php echo t('Example header: %s', h('start,end,name_' . $first . ($second ? ',name_' . $second : '') . ',location_' . $first . ',type_' . $first . ',tags_' . $first)); ?></p>
+<p class="text-muted"><?php echo t('Example header: %s', h('start,end,' . implode(',', array_map(fn($l) => 'name_' . $l, $locales)) . ',location_' . $first . ',type_' . $first . ',tags_' . $first)); ?></p>
 <p class="text-muted"><?php echo t('Re-uploading a file will not duplicate events that were already imported (same start and name in the default language).'); ?></p>

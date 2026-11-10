@@ -5,6 +5,8 @@
  *
  * @var string $endpoint
  * @var string $locale
+ * @var int    $numEvents
+ * @var string $title
  */
 ?>
 

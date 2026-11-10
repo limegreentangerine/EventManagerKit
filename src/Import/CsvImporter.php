@@ -183,9 +183,13 @@ final class CsvImporter
         if (!isset($columns['name'])) {
             $plan->addError(1, 'Missing a name column, e.g. "name_en_GB".');
         }
-        foreach (array_keys($columns['name'] ?? []) as $locale) {
-            if (!in_array($locale, $siteLocales, true)) {
-                $plan->addError(1, sprintf('Column locale "%s" is not a locale of this site.', $locale));
+        $unknown = [];
+        foreach (self::LOCALE_COLUMNS as $kind) {
+            foreach (array_keys($columns[$kind] ?? []) as $locale) {
+                if (!in_array($locale, $siteLocales, true) && !isset($unknown[$locale])) {
+                    $unknown[$locale] = true;
+                    $plan->addError(1, sprintf('Column locale "%s" is not a locale of this site.', $locale));
+                }
             }
         }
         if ($plan->errors) {

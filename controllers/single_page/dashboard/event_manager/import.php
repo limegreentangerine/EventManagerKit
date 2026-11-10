@@ -11,12 +11,11 @@ use EventManagerKit\Import\{CsvImporter, ImportPersister};
 
 class Import extends DashboardPageController
 {
-    private const MAX_BYTES = 5 * 1024 * 1024;
-
     public function on_start()
     {
         parent::on_start();
         $this->set('locales', LocaleContext::siteLocales());
+        $this->set('maxUploadMb', round(UploadedFile::getMaxFilesize() / 1024 / 1024, 1));
     }
 
     public function view() {}
@@ -32,8 +31,8 @@ class Import extends DashboardPageController
             $this->error->add(t('Please choose a CSV file to upload.'));
         } elseif (strtolower($file->getClientOriginalExtension()) !== 'csv') {
             $this->error->add(t('The file must be a .csv file.'));
-        } elseif ($file->getSize() > self::MAX_BYTES) {
-            $this->error->add(t('The file is too large (limit %s MB).', self::MAX_BYTES / 1024 / 1024));
+        } elseif ($file->getSize() > ($max = UploadedFile::getMaxFilesize())) {
+            $this->error->add(t('The file is too large (limit %s MB).', round($max / 1024 / 1024, 1)));
         }
 
         if (!$this->error->has()) {

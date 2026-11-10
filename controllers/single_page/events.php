@@ -2,7 +2,7 @@
 
 namespace Concrete\Package\EventManagerKit\Controller\SinglePage;
 
-use Page;
+use Concrete\Core\Page\Page;
 use Concrete\Core\Url\SeoCanonical;
 use Concrete\Core\Permission\Checker;
 use Concrete\Core\Support\Facade\Url;
@@ -24,7 +24,7 @@ class Events extends PageController
      * venue, load Mapbox GL and MapboxKit's <mapbox-component> and hand the
      * view its config. Otherwise the view falls back to an external map link.
      */
-    private function addMap($event): void
+    private function addMap(\EventManagerKit\Entity\Event $event): void
     {
         $config = $event->getLocation() ? LocationMap::config($event->getLocation()) : null;
         $package = $config ? $this->app->make(PackageService::class)->getByHandle('mapbox') : null;
@@ -47,7 +47,7 @@ class Events extends PageController
      * page object, which is the generic "Events" single page. Point them at
      * this event for this request only (nothing is saved).
      */
-    private function describePage($event, string $locale, string $description): void
+    private function describePage(\EventManagerKit\Entity\Event $event, string $locale, string $description): void
     {
         if ($slug = $event->getSlug($locale)) {
             $this->app->make(SeoCanonical::class)->setPathArguments([$slug]);
