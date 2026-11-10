@@ -34,11 +34,11 @@ final class SeoTagsTest extends TestCase
     public function testAddToSitemapAppendsUrlsWithAlternates(): void
     {
         $doc = new \SimpleXMLElement('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>');
-        SeoTags::addToSitemap($doc, [['loc' => 'https://x.test/a?b=1&c=2', 'alternates' => ['en-GB' => 'https://x.test/a']]], 'weekly', '0.5');
+        SeoTags::addToSitemap($doc, [['loc' => 'https://x.test/a?b=1&c=2', 'alternates' => ['en-GB' => 'https://x.test/a'], 'lastmod' => new \DateTimeImmutable('2026-11-10 12:30:00', new \DateTimeZone('Europe/London'))]], 'weekly', '0.5');
         $xml = (string) $doc->asXML();
 
         $this->assertStringContainsString('<loc>https://x.test/a?b=1&amp;c=2</loc>', $xml);
-        $this->assertStringContainsString('<changefreq>weekly</changefreq>', $xml);
+        $this->assertStringContainsString('<lastmod>2026-11-10T12:30:00+00:00</lastmod><changefreq>weekly</changefreq>', preg_replace('/>\s+</', '><', $xml));
         $this->assertMatchesRegularExpression('#<xhtml:link[^>]*hreflang="en-GB"#', $xml);
         $this->assertNotFalse(simplexml_load_string($xml));
     }

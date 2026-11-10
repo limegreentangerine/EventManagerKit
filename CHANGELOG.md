@@ -31,7 +31,8 @@ Notable changes to this project are documented here.
 - SEO on the event page: canonical URL, `hreflang` alternates for each
   language with a slug, and Open Graph/Twitter tags. Published events are added
   to Concrete's `sitemap.xml` (via `on_sitemap_xml_ready`), once per language
-  with hreflang alternates.
+  with hreflang alternates and a `lastmod` from the event's updated date. Every
+  dashboard save now refreshes that date, including text-only edits.
 - The calendar and list blocks load their events by `fetch` from
   `GET /ajax/events-manager/events` (HTML fragment in JSON, `Cache-Control:
 no-store`), so pages holding them can be cached without showing stale

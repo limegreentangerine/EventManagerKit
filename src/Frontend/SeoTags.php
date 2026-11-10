@@ -64,7 +64,7 @@ final class SeoTags
      * Adds one <url> per entry (with xhtml:link hreflang alternates) to a
      * sitemap document.
      *
-     * @param list<array{loc:string,alternates:array<string,string>}> $entries
+     * @param list<array{loc:string,alternates:array<string,string>,lastmod?:\DateTimeInterface}> $entries
      */
     public static function addToSitemap(\SimpleXMLElement $document, array $entries, string $changeFrequency, string $priority): void
     {
@@ -72,6 +72,9 @@ final class SeoTags
         foreach ($entries as $entry) {
             $url = $document->addChild('url');
             $url->addChild('loc', htmlspecialchars($entry['loc'], ENT_XML1));
+            if (isset($entry['lastmod'])) {
+                $url->addChild('lastmod', $entry['lastmod']->format('Y-m-d\TH:i:sP'));
+            }
             $url->addChild('changefreq', $changeFrequency);
             $url->addChild('priority', $priority);
             foreach ($entry['alternates'] as $lang => $href) {

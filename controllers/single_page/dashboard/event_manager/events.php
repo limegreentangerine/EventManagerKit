@@ -254,6 +254,8 @@ class Events extends DashboardPageController
                 $event->addTag($tag);
             }
 
+            // A text-only edit changes child rows, not the event, so Doctrine would not bump this itself.
+            $event->updateModifiedDatetime();
             $this->em->persist($event);
             $this->em->flush();
 

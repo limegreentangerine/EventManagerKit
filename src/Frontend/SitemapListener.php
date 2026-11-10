@@ -21,7 +21,7 @@ final class SitemapListener
         foreach ($finder->allPublished() as $item) {
             $alternates = SeoTags::alternates($item, fn(string $locale) => IcsEndpoint::eventUrl($item, $locale));
             foreach ($alternates as $url) {
-                $entries[] = ['loc' => $url, 'alternates' => $alternates];
+                $entries[] = ['loc' => $url, 'alternates' => $alternates, 'lastmod' => $item->getDateUpdated()];
             }
         }
         SeoTags::addToSitemap(
