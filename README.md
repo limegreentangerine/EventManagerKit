@@ -1,18 +1,15 @@
-# Composer Package Template
+# Event Manager Kit
 
-[![Code Standards](https://github.com/limegreentangerine/composer_package/actions/workflows/CodeStandards.yml/badge.svg)](https://github.com/limegreentangerine/composer_package/actions/workflows/CodeStandards.yml)
-[![System Tests](https://github.com/limegreentangerine/composer_package/actions/workflows/SystemTests.yml/badge.svg)](https://github.com/limegreentangerine/composer_package/actions/workflows/SystemTests.yml)
+[![Code Standards](https://github.com/limegreentangerine/event_manager_kit/actions/workflows/CodeStandards.yml/badge.svg)](https://github.com/limegreentangerine/event_manager_kit/actions/workflows/CodeStandards.yml)
+[![System Tests](https://github.com/limegreentangerine/event_manager_kit/actions/workflows/SystemTests.yml/badge.svg)](https://github.com/limegreentangerine/event_manager_kit/actions/workflows/SystemTests.yml)
 
-Use this repository as a starting point for a Concrete CMS package. Before using
-the template, update the package metadata and replace these identifiers
-throughout the project (use case-sensitive search):
+Multilingual event manager for Concrete CMS 9: admins create events in the
+dashboard and they appear on the site. Package handle `event_manager_kit`,
+namespace `EventManagerKit`.
 
-- `composer_package` -> package handle and PHP namespace prefix.
-- `composer_description` -> package description in `composer.json`.
-- `ComposerPackage` -> PHP namespace in the Composer autoload configuration.
-- `composer_name` -> package display name, where used.
-
-Add contributor details to the `authors` section of `composer.json`.
+Status: the data model, dashboard (events, types, tags, locations) and CSV
+import are written. Frontend blocks are still to come; see `CHANGELOG.md`.
+The dashboard and import have not yet been run in a Concrete site.
 
 ## Requirements
 

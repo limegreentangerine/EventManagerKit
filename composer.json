@@ -1,17 +1,17 @@
 {
-	"name": "limegreentangerine/composer_package",
-	"description": "composer_description",
+	"name": "limegreentangerine/event_manager_kit",
+	"description": "Multilingual event manager for Concrete CMS.",
 	"type": "concrete5-package",
 	"license": "proprietary",
 	"minimum-stability": "stable",
 	"autoload": {
 		"psr-4": {
-			"ComposerPackage\\": "src/"
+			"EventManagerKit\\": "src/"
 		}
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"ComposerPackage\\Tests\\": "tests/"
+			"EventManagerKit\\Tests\\": "tests/"
 		}
 	},
 	"authors": [],

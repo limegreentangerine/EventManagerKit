@@ -1,11 +1,17 @@
 <?php
 
-namespace Concrete\Package\ComposerPackage;
+namespace Concrete\Package\EventManagerKit;
 
-use Concrete\Core\Package\Package;
+use Concrete\Core\Entity\Package;
+use ClassKit\Package\PackageController;
+use ClassKit\Package\Traits\PageTrait;
+use Concrete\Core\Page\{Page, Single as SinglePage};
+use Concrete\Core\Database\Connection\Connection;
 
-class Controller extends Package
+class Controller extends PackageController
 {
+    use PageTrait;
+
     /**
      * The packages handle.
      * Note that this must be unique in the
@@ -13,14 +19,14 @@ class Controller extends Package
      *
      * @var string
      */
-    protected $pkgHandle = 'composer_package';
+    protected $pkgHandle = 'event_manager_kit';
 
     /**
      * The packages version.
      *
      * @var string
      */
-    protected $pkgVersion = '0.0.0';
+    protected $pkgVersion = '1.0.0';
 
     /**
      * The minimum Concrete version compatible with the package.
@@ -83,7 +89,7 @@ class Controller extends Package
      * @var array
      */
     protected $pkgAutoloaderRegistries = [
-        'src' => '\ComposerPackage',
+        'src' => '\EventManagerKit',
     ];
 
     /**
@@ -97,11 +103,40 @@ class Controller extends Package
 
     public function getPackageName()
     {
-        return t('composer_name');
+        return t('Event Manager');
     }
 
     public function getPackageDescription()
     {
-        return t('composer_description');
+        return t('Manage multilingual events in the dashboard and show them on the site.');
     }
+
+    public function installOrUpgrade(Package $pkg)
+    {
+        // Entities are installed from src/Entity by the package install.
+        $pages = [
+            '' => [t('Event Manager'), t('Event Manager Dashboard')],
+            '/events' => [t('Events'), t('Manage events')],
+            '/event_types' => [t('Event Types'), t('Manage event types')],
+            '/event_tags' => [t('Event Tags'), t('Manage event tags')],
+            '/locations' => [t('Locations'), t('Manage locations')],
+            '/import' => [t('Import'), t('Import events from CSV')],
+        ];
+        $db = $this->app->make(Connection::class);
+        foreach ($pages as $suffix => [$name, $description]) {
+            $path = '/dashboard/event_manager' . $suffix;
+            $this->addSinglePage($path, $pkg, $name, $description);
+
+            // A page created before its view file existed keeps an empty
+            // cFilename and renders blank; write it directly.
+            $page = Page::getByPath($path);
+            if (!$page->getCollectionFilename()) {
+                $db->update('Pages', ['cFilename' => SinglePage::getPathToNode($path, $pkg)], ['cID' => $page->getCollectionID()]);
+            }
+        }
+    }
+
+    public function registerRoutes(): void {}
+
+    public function registerEvents(): void {}
 }

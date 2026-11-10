@@ -2,6 +2,27 @@
 
 Notable changes to this project are documented here.
 
+## 1.0.0 (unreleased)
+
+### Added
+
+- Typed Doctrine entities: `Event`, `EventContent`, `EventType`, `EventTag`,
+  `Location` and their per-locale name rows.
+- `Translations::pick()`: exact locale, then same language, then the default
+  locale, then any row, so a missing translation is never blank.
+- `TimeOfDay` enum, with unit tests for all of the above.
+- Dashboard under `/dashboard/event_manager`: Events, Event Types, Event Tags
+  and Locations, each with Concrete's search list (sortable, paginated, name
+  filter; events also filter by type and location), add/edit with one field per
+  site locale, and delete.
+- CSV import: header-driven, one column per locale, whole-file validation with
+  a per-line error report, "check only" mode, all-or-nothing transaction, and
+  re-uploads skip events already imported.
+
+### Changed
+
+- Renamed the template placeholders to `event_manager_kit` / `EventManagerKit`.
+
 ## 0.0.0
 
 ### Added
