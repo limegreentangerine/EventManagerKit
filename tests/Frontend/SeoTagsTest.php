@@ -18,15 +18,17 @@ final class SeoTagsTest extends TestCase
         $this->assertSame(['cy-GB' => 'https://x.test/cy_GB', 'en-GB' => 'https://x.test/en_GB'], $alternates);
     }
 
-    public function testHeadEscapesAndIncludesOpenGraph(): void
+    public function testHeadHasAlternatesAndTwitterButNoDuplicateCanonicalOrOgCore(): void
     {
-        $head = SeoTags::head('https://x.test/a', ['en-GB' => 'https://x.test/a'], 'Tom "&" Jerry', '', 'https://x.test/i.jpg');
+        $head = SeoTags::head(['en-GB' => 'https://x.test/a'], 'Tom "&" Jerry', '', 'https://x.test/i.jpg');
 
-        $this->assertStringContainsString('<link rel="canonical" href="https://x.test/a">', $head);
         $this->assertStringContainsString('hreflang="en-GB"', $head);
-        $this->assertStringContainsString('property="og:title" content="Tom &quot;&amp;&quot; Jerry"', $head);
+        $this->assertStringContainsString('name="twitter:title" content="Tom &quot;&amp;&quot; Jerry"', $head);
         $this->assertStringContainsString('name="twitter:card" content="summary_large_image"', $head);
-        $this->assertStringNotContainsString('og:description', $head);
+        $this->assertStringContainsString('property="og:image"', $head);
+        $this->assertStringNotContainsString('canonical', $head);
+        $this->assertStringNotContainsString('og:title', $head);
+        $this->assertStringNotContainsString('twitter:description', $head);
     }
 
     public function testAddToSitemapAppendsUrlsWithAlternates(): void

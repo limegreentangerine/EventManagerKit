@@ -3,6 +3,7 @@
 namespace Concrete\Package\EventManagerKit\Controller\SinglePage;
 
 use Page;
+use Concrete\Core\Url\SeoCanonical;
 use Concrete\Core\Permission\Checker;
 use Concrete\Core\Support\Facade\Url;
 use Doctrine\ORM\EntityManagerInterface;
@@ -40,6 +41,23 @@ class Events extends PageController
         $this->addFooterItem($html->javascript($base . 'view.js'));
         $this->set('mapboxConfig', $config);
     }
+
+    /**
+     * Concrete builds the canonical link and og:title/og:description from the
+     * page object, which is the generic "Events" single page. Point them at
+     * this event for this request only (nothing is saved).
+     */
+    private function describePage($event, string $locale, string $description): void
+    {
+        if ($slug = $event->getSlug($locale)) {
+            $this->app->make(SeoCanonical::class)->setPathArguments([$slug]);
+        }
+        $version = $this->getPageObject()?->getVersionObject();
+        if ($version) {
+            $version->cvName = $event->getName($locale);
+            $version->cvDescription = $description;
+        }
+    }
     public function view($slug = null)
     {
         $slug = is_string($slug) ? $slug : '';
@@ -69,7 +87,6 @@ class Events extends PageController
             $url = fn(string $l) => IcsEndpoint::eventUrl($event, $l);
             $file = $event->getImageID() ? \Concrete\Core\File\File::getByID($event->getImageID()) : null;
             $this->addHeaderItem(SeoTags::head(
-                (string) $url($locale),
                 SeoTags::alternates($event, $url),
                 $event->getName($locale),
                 (string) $this->get('pageDescription'),
@@ -77,6 +94,7 @@ class Events extends PageController
             ));
         }
         $this->addMap($event);
+        $this->describePage($event, $locale, (string) $this->get('pageDescription'));
         $this->set('event', $event);
         $this->set('locale', $locale);
         $this->set('isDraft', !$event->isPublished());

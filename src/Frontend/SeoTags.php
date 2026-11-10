@@ -32,18 +32,22 @@ final class SeoTags
     }
 
     /**
+     * Head tags Concrete does not emit itself: hreflang alternates, Twitter
+     * card and og:image. (Concrete adds the canonical link and og:title,
+     * og:description, og:type and og:url from the page object.)
+     *
      * @param array<string,string> $alternates hreflang => URL
      */
-    public static function head(string $canonical, array $alternates, string $title, string $description, ?string $image): string
+    public static function head(array $alternates, string $title, string $description, ?string $image): string
     {
         $e = fn(string $v) => htmlspecialchars($v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        $tags = ['<link rel="canonical" href="' . $e($canonical) . '">'];
+        $tags = [];
         foreach ($alternates as $lang => $url) {
             $tags[] = '<link rel="alternate" hreflang="' . $e($lang) . '" href="' . $e($url) . '">';
         }
-        $meta = ['og:type' => 'article', 'og:title' => $title, 'og:url' => $canonical, 'twitter:card' => $image ? 'summary_large_image' : 'summary', 'twitter:title' => $title];
+        $meta = ['twitter:card' => $image ? 'summary_large_image' : 'summary', 'twitter:title' => $title];
         if ($description !== '') {
-            $meta += ['og:description' => $description, 'twitter:description' => $description];
+            $meta['twitter:description'] = $description;
         }
         if ($image) {
             $meta += ['og:image' => $image, 'twitter:image' => $image];
