@@ -3,11 +3,18 @@
 
 use Concrete\Core\Support\Facade\Url;
 use EventManagerKit\Time\SiteTimezone;
+use EventManagerKit\Recurrence\Expander;
 use EventManagerKit\Frontend\{EventDisplay, IcsEndpoint, LocationMap};
 
 $zone = SiteTimezone::current();
 
 $description = $event->getContent($locale)?->getDescription();
+
+// Repeating events: show and mark up the next date that has not finished (else the first).
+$rule = $event->getRecurrence();
+$next = Expander::occurrences($event, new DateTimeImmutable(), null, 1)[0] ?? null;
+$startDate = $rule && $next ? $next->start : $event->getStartDate();
+$endDate = $rule && $next ? $next->end : $event->getEndDate();
 
 // schema.org Event; all-day events use date-only values.
 $dateFormat = $event->isAllDay() ? 'Y-m-d' : DATE_ATOM;
@@ -15,8 +22,8 @@ $schema = [
     '@context' => 'https://schema.org',
     '@type' => 'Event',
     'name' => $event->getName($locale),
-    'startDate' => SiteTimezone::localise($event->getStartDate(), $zone)->format($dateFormat),
-    'endDate' => SiteTimezone::localise($event->getEndDate(), $zone)->format($dateFormat),
+    'startDate' => SiteTimezone::localise($startDate, $zone)->format($dateFormat),
+    'endDate' => SiteTimezone::localise($endDate, $zone)->format($dateFormat),
     'eventStatus' => 'https://schema.org/EventScheduled',
     'inLanguage' => $locale,
 ];
@@ -77,7 +84,10 @@ if ($image) {
 
     <dl class="em-event-detail__facts">
         <dt><?php echo t('When'); ?></dt>
-        <dd><?php echo h(EventDisplay::dateRange($event, $locale)); ?></dd>
+        <dd>
+            <?php echo h(EventDisplay::dateRange($event, $locale, $startDate, $endDate)); ?>
+            <?php if ($rule) { ?><br><span class="em-event-detail__repeat"><?php echo h(EventDisplay::repeatSummary($rule, $locale)); ?></span><?php } ?>
+        </dd>
 
         <?php if ($event->getLocation()) { ?>
             <dt><?php echo t('Where'); ?></dt>

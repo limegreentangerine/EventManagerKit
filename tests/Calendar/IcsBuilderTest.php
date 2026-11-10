@@ -41,6 +41,16 @@ final class IcsBuilderTest extends TestCase
         $this->assertStringContainsString("DTSTART:20260720T090000Z\r\n", $this->ics($event));
     }
 
+    public function testRepeatingEventExportsRruleAndExdate(): void
+    {
+        $event = (new Event())->setDates(new DateTimeImmutable('2026-07-20 10:00'), new DateTimeImmutable('2026-07-20 11:00'))
+            ->setRecurrence(new \EventManagerKit\Recurrence\Rule('weekly', 2, '2026-12-31', ['2026-08-03']));
+        $ics = $this->ics($event);
+
+        $this->assertStringContainsString("RRULE:FREQ=WEEKLY;INTERVAL=2;UNTIL=20261231T235959Z\r\n", $ics);
+        $this->assertStringContainsString("EXDATE:20260803T090000Z\r\n", $ics);
+    }
+
     public function testAllDayEndIsExclusive(): void
     {
         $event = (new Event())->setDates(new DateTimeImmutable('2026-12-02 00:00'), new DateTimeImmutable('2026-12-03 23:59:59'))->setAllDay(true);

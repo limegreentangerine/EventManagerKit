@@ -1,5 +1,5 @@
 <?php defined('C5_EXECUTE') or die('Access Denied.');
-/** @var \EventManagerKit\Entity\Event $event @var string $locale */
+/** @var \EventManagerKit\Entity\Event $event @var \EventManagerKit\Recurrence\Occurrence $occurrence @var string $locale */
 
 use EventManagerKit\Frontend\EventDisplay;
 
@@ -15,7 +15,7 @@ $slug = $event->getSlug($locale);
             <?php echo h($event->getName($locale)); ?>
         <?php } ?>
     </h3>
-    <p class="em-event__date"><?php echo h(EventDisplay::dateRange($event, $locale)); ?></p>
+    <p class="em-event__date"><?php echo h(EventDisplay::dateRange($event, $locale, $occurrence->start, $occurrence->end)); ?></p>
     <?php if ($event->getLocation()) { ?>
         <p class="em-event__location"><?php echo h($event->getLocation()->getFullName($locale)); ?></p>
     <?php } ?>

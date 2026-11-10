@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EventManagerKit\Frontend;
 
 use DateTimeImmutable;
+use EventManagerKit\Recurrence\{Expander, Occurrence};
 use Doctrine\ORM\{EntityManagerInterface, QueryBuilder};
 use EventManagerKit\Entity\{Event, EventContent, EventTag, EventType, Location};
 
@@ -25,12 +26,23 @@ final class EventFinder
             ->addOrderBy('e.id', 'ASC');
     }
 
-    private function page(QueryBuilder $qb, int $limit, int $offset): EventPage
+    /**
+     * Expands events into occurrences inside the window, soonest first, and
+     * returns one page of them. shortcut: every matching event is loaded and
+     * paged in PHP, because repeats cannot be counted or paged in SQL; fine
+     * for hundreds of events, move to a materialised table beyond that.
+     *
+     * @param list<Event> $events
+     */
+    private function page(array $events, DateTimeImmutable $from, ?DateTimeImmutable $to, int $limit, int $offset): EventPage
     {
-        // One extra row tells us whether there is a next page without a COUNT.
-        $rows = $qb->setFirstResult($offset)->setMaxResults($limit + 1)->getQuery()->getResult();
+        $all = [];
+        foreach ($events as $event) {
+            array_push($all, ...Expander::occurrences($event, $from, $to));
+        }
+        usort($all, fn(Occurrence $a, Occurrence $b) => [$a->start, $a->event->getID()] <=> [$b->start, $b->event->getID()]);
 
-        return new EventPage(array_slice($rows, 0, $limit), count($rows) > $limit);
+        return new EventPage(array_slice($all, $offset, $limit), count($all) > $offset + $limit);
     }
 
     /**
@@ -44,24 +56,25 @@ final class EventFinder
     }
 
     /**
-     * Events that have not finished yet.
+     * Occurrences that have not finished yet.
      */
     public function upcoming(int $limit, ?DateTimeImmutable $now = null): EventPage
     {
+        $now ??= new DateTimeImmutable();
         $qb = $this->base()
-            ->andWhere('e.endDate >= :now')
-            ->setParameter('now', $now ?? new DateTimeImmutable());
+            ->andWhere('e.endDate >= :now OR e.recurrence IS NOT NULL')
+            ->setParameter('now', $now);
 
-        return $this->page($qb, $limit, 0);
+        return $this->page($qb->getQuery()->getResult(), $now, null, $limit, 0);
     }
 
     /**
-     * Events overlapping the query's month, filtered, one page at a time.
+     * Occurrences overlapping the query's month, filtered, one page at a time.
      */
     public function forMonth(EventQuery $query): EventPage
     {
         $qb = $this->base()
-            ->andWhere('e.startDate <= :monthEnd AND e.endDate >= :monthStart')
+            ->andWhere('e.startDate <= :monthEnd AND (e.endDate >= :monthStart OR e.recurrence IS NOT NULL)')
             ->setParameter('monthStart', $query->monthStart())
             ->setParameter('monthEnd', $query->monthEnd());
 
@@ -78,7 +91,7 @@ final class EventFinder
             $qb->innerJoin('e.tags', 't')->andWhere('t.id = :tag')->setParameter('tag', $query->tagId);
         }
 
-        return $this->page($qb, EventQuery::PER_PAGE, ($query->page - 1) * EventQuery::PER_PAGE);
+        return $this->page($qb->getQuery()->getResult(), $query->monthStart(), $query->monthEnd(), EventQuery::PER_PAGE, ($query->page - 1) * EventQuery::PER_PAGE);
     }
 
     /**

@@ -48,4 +48,11 @@ final class EventDisplayTest extends TestCase
         $this->assertStringContainsString('subject=Open%20day', $links['outlook']);
         $this->assertStringContainsString('allday=false', $links['outlook']);
     }
+
+    public function testDateRangeUsesTheOccurrencesDates(): void
+    {
+        $event = $this->event('2026-11-20 10:00', '2026-11-20 12:30');
+
+        $this->assertSame('27 Nov 2026, 10:00 – 12:30', EventDisplay::dateRange($event, 'en_GB', new DateTimeImmutable('2026-11-27 10:00'), new DateTimeImmutable('2026-11-27 12:30')));
+    }
 }

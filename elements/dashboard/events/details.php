@@ -10,6 +10,12 @@ $selectedLocation = (string) ($p['location'] ?? ($entity && $entity->getLocation
 $selectedType = (string) ($p['type'] ?? ($entity && $entity->getType() ? $entity->getType()->getID() : ''));
 $selectedTags = $formContent ? (array) ($p['tags'] ?? []) : ($entity ? array_map(fn($t) => $t->getID(), $entity->getTags()->toArray()) : []);
 
+$rule = $entity ? $entity->getRecurrence() : null;
+$repeat = (string) ($p['repeat'] ?? ($rule ? $rule->frequency : ''));
+$repeatInterval = (string) ($p['repeatInterval'] ?? ($rule ? $rule->interval : 1));
+$repeatUntil = (string) ($p['repeatUntil'] ?? ($rule ? (string) $rule->until : ''));
+$repeatSkip = (string) ($p['repeatSkip'] ?? ($rule ? implode("\n", $rule->exceptions) : ''));
+
 $fm = app(\Concrete\Core\Application\Service\FileManager::class);
 $ps = app(\Concrete\Core\Form\Service\Widget\PageSelector::class);
 $fileOf = fn($key, $getter) => ($fid = (int) ($p[$key] ?? ($entity ? $entity->$getter() : 0))) ? \Concrete\Core\File\File::getByID($fid) : null;
@@ -71,6 +77,26 @@ if ($entity) {
                 <?php echo $form->label('endDate', t('End')); ?>
                 <input type="<?php echo $allDay ? 'date' : 'datetime-local'; ?>" id="endDate" name="endDate" class="form-control" value="<?php echo h($end); ?>" required>
             </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-4 form-group">
+                <?php echo $form->label('repeat', t('Repeats')); ?>
+                <?php echo $form->select('repeat', ['' => t('Does not repeat'), 'daily' => t('Daily'), 'weekly' => t('Weekly (same weekday)'), 'monthly' => t('Monthly (same day of the month)')], $repeat); ?>
+            </div>
+            <div class="col-md-4 form-group" data-repeat>
+                <?php echo $form->label('repeatInterval', t('Every')); ?>
+                <input type="number" min="1" max="99" id="repeatInterval" name="repeatInterval" class="form-control" value="<?php echo h($repeatInterval); ?>">
+                <div class="form-text"><?php echo t('1 = every day/week/month, 2 = every other one.'); ?></div>
+            </div>
+            <div class="col-md-4 form-group" data-repeat>
+                <?php echo $form->label('repeatUntil', t('Repeat until (optional)')); ?>
+                <input type="date" id="repeatUntil" name="repeatUntil" class="form-control" value="<?php echo h($repeatUntil); ?>">
+            </div>
+        </div>
+        <div class="form-group mt-2" data-repeat>
+            <?php echo $form->label('repeatSkip', t('Skip these dates (optional)')); ?>
+            <?php echo $form->textarea('repeatSkip', $repeatSkip, ['rows' => 2, 'placeholder' => '2026-12-25']); ?>
+            <div class="form-text"><?php echo t('One date per line (YYYY-MM-DD), for occurrences that do not happen.'); ?></div>
         </div>
     </fieldset>
 
@@ -148,6 +174,9 @@ $(function () {
             this.value = type === 'date' ? v.substring(0, 10) : (v ? v.substring(0, 10) + 'T00:00' : '');
         });
     });
+
+    // Repeat options only matter when the event repeats.
+    $('#repeat').on('change', function () { $('[data-repeat]').toggle(this.value !== ''); }).trigger('change');
 
     // Show only the input for the chosen link type.
     $('#linkType').on('change', function () {

@@ -7,6 +7,7 @@ namespace EventManagerKit\Frontend;
 use DateTimeZone;
 use IntlDateFormatter;
 use EventManagerKit\Entity\Event;
+use EventManagerKit\Recurrence\Rule;
 use EventManagerKit\Time\SiteTimezone;
 
 /**
@@ -14,22 +15,40 @@ use EventManagerKit\Time\SiteTimezone;
  */
 final class EventDisplay
 {
-    public static function dateRange(Event $event, string $locale): string
+    /** An occurrence's own dates when given, else the event's first dates. */
+    public static function dateRange(Event $event, string $locale, ?\DateTimeImmutable $start = null, ?\DateTimeImmutable $end = null): string
     {
         $day = new IntlDateFormatter($locale, IntlDateFormatter::NONE, IntlDateFormatter::NONE, null, null, 'd MMM y');
         $time = new IntlDateFormatter($locale, IntlDateFormatter::NONE, IntlDateFormatter::NONE, null, null, 'HH:mm');
-        $start = $event->getStartDate();
-        $end = $event->getEndDate();
+        $start ??= $event->getStartDate();
+        $end ??= $event->getEndDate();
+        $multiDay = $start->format('Y-m-d') !== $end->format('Y-m-d');
 
         if ($event->isAllDay()) {
-            return $event->isMultiDay() ? $day->format($start) . ' – ' . $day->format($end) : $day->format($start);
+            return $multiDay ? $day->format($start) . ' – ' . $day->format($end) : $day->format($start);
         }
 
-        if ($event->isMultiDay()) {
+        if ($multiDay) {
             return $day->format($start) . ' ' . $time->format($start) . ' – ' . $day->format($end) . ' ' . $time->format($end);
         }
 
         return $day->format($start) . ', ' . $time->format($start) . ' – ' . $time->format($end);
+    }
+
+    /** "Repeats weekly until 31 Dec 2026", in the given locale. */
+    public static function repeatSummary(Rule $rule, string $locale): string
+    {
+        $every = match ($rule->frequency) {
+            'daily' => $rule->interval === 1 ? t('Repeats daily') : t('Repeats every %d days', $rule->interval),
+            'weekly' => $rule->interval === 1 ? t('Repeats weekly') : t('Repeats every %d weeks', $rule->interval),
+            default => $rule->interval === 1 ? t('Repeats monthly') : t('Repeats every %d months', $rule->interval),
+        };
+        if (!$rule->until) {
+            return $every;
+        }
+        $day = new IntlDateFormatter($locale, IntlDateFormatter::NONE, IntlDateFormatter::NONE, null, null, 'd MMM y');
+
+        return $every . ' ' . t('until %s', $day->format(new \DateTimeImmutable($rule->until)));
     }
 
     public static function monthTitle(\DateTimeImmutable $month, string $locale): string

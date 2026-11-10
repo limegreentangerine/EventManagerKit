@@ -60,6 +60,6 @@ final class IcsEndpoint
         $finder = new EventFinder(app(EntityManagerInterface::class));
         $name = (string) app('site')->getSite()->getSiteName();
 
-        return $this->respond($finder->upcoming(self::FEED_LIMIT)->events, $name, 'events.ics');
+        return $this->respond($finder->upcoming(self::FEED_LIMIT)->events(), $name, 'events.ics');
     }
 }

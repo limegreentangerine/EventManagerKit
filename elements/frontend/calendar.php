@@ -4,11 +4,11 @@
  * Links are query-string only ("?month=2026-12"), so they resolve against
  * whichever page the block is on; the block's script turns them into fetches.
  *
- * @var \EventManagerKit\Frontend\EventQuery $query
- * @var array                                $events
- * @var bool                                 $hasMore
- * @var array|null                           $filters
- * @var string                               $locale
+ * @var \EventManagerKit\Frontend\EventQuery         $query
+ * @var list<\EventManagerKit\Recurrence\Occurrence> $occurrences
+ * @var bool                                         $hasMore
+ * @var array|null                                   $filters
+ * @var string                                       $locale
  */
 
 use EventManagerKit\Frontend\EventDisplay;
@@ -47,12 +47,12 @@ $next = $query->month->modify('+1 month');
     </form>
 <?php } ?>
 
-<?php if (empty($events)) { ?>
+<?php if (empty($occurrences)) { ?>
     <p class="em-events__empty"><?php echo t('There are no events this month.'); ?></p>
 <?php } else { ?>
     <ul class="em-events__items">
-        <?php foreach ($events as $event) { ?>
-            <?php View::element('frontend/event', ['event' => $event, 'locale' => $locale], 'event_manager_kit'); ?>
+        <?php foreach ($occurrences as $occurrence) { ?>
+            <?php View::element('frontend/event', ['event' => $occurrence->event, 'occurrence' => $occurrence, 'locale' => $locale], 'event_manager_kit'); ?>
         <?php } ?>
     </ul>
 <?php } ?>

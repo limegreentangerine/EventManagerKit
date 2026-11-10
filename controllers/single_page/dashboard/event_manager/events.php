@@ -3,6 +3,7 @@
 namespace Concrete\Package\EventManagerKit\Controller\SinglePage\Dashboard\EventManager;
 
 use DateTimeImmutable;
+use EventManagerKit\Recurrence\Rule;
 use Concrete\Core\Permission\Checker;
 use Doctrine\ORM\EntityManagerInterface;
 use EventManagerKit\Translation\LocaleContext;
@@ -194,6 +195,16 @@ class Events extends DashboardPageController
             $this->error->add(t('The end date must be after the start date.'));
         }
 
+        $rule = null;
+        try {
+            $rule = Rule::fromInput((string) ($post['repeat'] ?? ''), $post['repeatInterval'] ?? '', (string) ($post['repeatUntil'] ?? ''), (string) ($post['repeatSkip'] ?? ''));
+            if ($rule?->until && $start && $rule->until < $start->format('Y-m-d')) {
+                $this->error->add(t('"Repeat until" cannot be before the start date.'));
+            }
+        } catch (\InvalidArgumentException) {
+            $this->error->add(t('The repeat settings are not valid: the interval must be 1 to 99 and dates must look like 2026-12-31.'));
+        }
+
         $linkType = (string) ($post['linkType'] ?? '');
         $linkValue = $linkType ? trim((string) ($post['link' . ucfirst($linkType)] ?? '')) : '';
         if ($linkType && !in_array($linkType, Event::LINK_TYPES, true)) {
@@ -221,7 +232,8 @@ class Events extends DashboardPageController
             $event ??= new Event();
             $event->setDates($start, $end)->setAllDay($allDay)->setPublished(!empty($post['published']))->setLocation($location)->setType($type)
                 ->setMedia($imageID, $videoID, $posterID)
-                ->setLink($linkType ?: null, $linkValue);
+                ->setLink($linkType ?: null, $linkValue)
+                ->setRecurrence($rule);
 
             $descriptions = (array) ($post['description'] ?? []);
             foreach (LocaleContext::siteLocales() as $locale) {

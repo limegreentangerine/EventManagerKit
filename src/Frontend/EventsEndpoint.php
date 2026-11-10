@@ -30,7 +30,7 @@ final class EventsEndpoint
 
         return $this->render('frontend/calendar', [
             'query' => $request->query,
-            'events' => $page->events,
+            'occurrences' => $page->occurrences,
             'hasMore' => $page->hasMore,
             'filters' => $request->showFilters ? $finder->filterOptions() : null,
             'locale' => $request->locale,
@@ -40,7 +40,7 @@ final class EventsEndpoint
     private function list(EventFinder $finder, EndpointRequest $request): string
     {
         return $this->render('frontend/event_list', [
-            'events' => $finder->upcoming($request->limit)->events,
+            'occurrences' => $finder->upcoming($request->limit)->occurrences,
             'locale' => $request->locale,
         ]);
     }

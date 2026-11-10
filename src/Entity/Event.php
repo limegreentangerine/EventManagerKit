@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use IntlDateFormatter;
 use InvalidArgumentException;
 use Doctrine\ORM\Mapping as ORM;
+use EventManagerKit\Recurrence\Rule;
 use ClassKit\Entity\Core\UpdatedGuidEntity;
 use Doctrine\Common\Collections\{ArrayCollection, Collection};
 use EventManagerKit\Translation\{LocaleContext, Translations};
@@ -99,6 +100,11 @@ class Event extends UpdatedGuidEntity
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     protected ?string $linkValue = null;
+
+    /**
+     * @ORM\Column(type="string", length=2000, nullable=true)
+     */
+    protected ?string $recurrence = null;
 
     public function __construct()
     {
@@ -389,5 +395,18 @@ class Event extends UpdatedGuidEntity
                 ? null : (string) \Concrete\Core\Support\Facade\Url::to($page),
             default => null,
         };
+    }
+
+    /** The repeat rule, or null for a one-off event. */
+    public function getRecurrence(): ?Rule
+    {
+        return Rule::fromJson($this->recurrence);
+    }
+
+    public function setRecurrence(?Rule $rule): static
+    {
+        $this->recurrence = $rule?->toJson();
+
+        return $this;
     }
 }

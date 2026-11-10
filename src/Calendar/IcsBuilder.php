@@ -34,6 +34,8 @@ final class IcsBuilder
             $lines[] = 'DTEND:' . SiteTimezone::utc($event->getEndDate(), $zone);
         }
 
+        array_push($lines, ...$this->repeat($event, $zone));
+
         $lines[] = 'SUMMARY:' . self::escape($event->getName($locale));
         $description = trim(strip_tags((string) $event->getContent($locale)?->getDescription()));
         if ($description !== '') {
@@ -46,6 +48,36 @@ final class IcsBuilder
             $lines[] = 'URL:' . $url;
         }
         $lines[] = 'END:VEVENT';
+
+        return $lines;
+    }
+
+    /**
+     * RRULE and EXDATE lines for a repeating event, so calendar apps expand it themselves.
+     *
+     * @return list<string>
+     */
+    private function repeat(Event $event, DateTimeZone $zone): array
+    {
+        $rule = $event->getRecurrence();
+        if (!$rule) {
+            return [];
+        }
+        $allDay = $event->isAllDay();
+        $parts = ['FREQ=' . strtoupper($rule->frequency)];
+        if ($rule->interval > 1) {
+            $parts[] = 'INTERVAL=' . $rule->interval;
+        }
+        if ($rule->until) {
+            $until = new DateTimeImmutable($rule->until . ' 23:59:59');
+            $parts[] = 'UNTIL=' . ($allDay ? $until->format('Ymd') : SiteTimezone::utc($until, $zone));
+        }
+        $lines = ['RRULE:' . implode(';', $parts)];
+        if ($rule->exceptions) {
+            $time = $event->getStartDate()->format('H:i:s');
+            $values = array_map(fn(string $d) => $allDay ? str_replace('-', '', $d) : SiteTimezone::utc(new DateTimeImmutable($d . ' ' . $time), $zone), $rule->exceptions);
+            $lines[] = 'EXDATE' . ($allDay ? ';VALUE=DATE' : '') . ':' . implode(',', $values);
+        }
 
         return $lines;
     }

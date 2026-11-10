@@ -6,6 +6,14 @@ Notable changes to this project are documented here.
 
 ### Added
 
+- Repeating events (schema version 1.0.7; upgrade the package, then clear the
+  cache). An event can repeat daily, weekly (same weekday) or monthly (same day
+  of the month, months without that day are skipped), every N, until an
+  optional date, with skipped dates. One row per series; the calendar and list
+  expand it into dated occurrences (a series is walked for at most a year ahead
+  in the list and feed), the event page shows the next date and "Repeats
+  weekly until...", and the ICS exports an `RRULE` and `EXDATE` instead of
+  separate events.
 - Locations have an address, latitude/longitude and an optional online event
   URL (schema version 1.0.6; upgrade the package to add the columns). Leaving
   the coordinates blank looks them up from the address when the optional
