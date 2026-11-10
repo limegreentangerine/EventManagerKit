@@ -39,7 +39,7 @@ final class IcsEndpoint
     {
         $slug = $event->getSlug($locale);
 
-        return $slug ? (string) Url::to('/events', $slug) : null;
+        return $slug ? (string) Url::to('/events/' . $slug) : null;
     }
 
     public function event(string $slug = ''): Response
