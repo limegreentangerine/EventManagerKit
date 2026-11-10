@@ -105,21 +105,21 @@ if ($entity) {
         <div class="form-group mb-3">
             <div class="d-flex justify-content-between align-items-baseline">
                 <?php echo $form->label('location', t('Location')); ?>
-                <button type="button" class="btn btn-secondary btn-sm" data-new="locations" data-target="#location"><?php echo t('+ New'); ?></button>
+                <button type="button" class="btn btn-secondary btn-sm" data-new="locations" aria-label="<?php echo h(t('+ New location')); ?>" data-target="#location"><?php echo t('+ New'); ?></button>
             </div>
             <?php echo $form->select('location', $locationOptions, $selectedLocation); ?>
         </div>
         <div class="form-group mb-3">
             <div class="d-flex justify-content-between align-items-baseline">
                 <?php echo $form->label('type', t('Event Type')); ?>
-                <button type="button" class="btn btn-secondary btn-sm" data-new="event_types" data-target="#type"><?php echo t('+ New'); ?></button>
+                <button type="button" class="btn btn-secondary btn-sm" data-new="event_types" aria-label="<?php echo h(t('+ New event type')); ?>" data-target="#type"><?php echo t('+ New'); ?></button>
             </div>
             <?php echo $form->select('type', $typeOptions, $selectedType); ?>
         </div>
         <div class="form-group mb-3">
             <div class="d-flex justify-content-between align-items-baseline">
                 <?php echo $form->label('tags', t('Tags')); ?>
-                <button type="button" class="btn btn-secondary btn-sm" data-new="event_tags" data-target="#tags"><?php echo t('+ New'); ?></button>
+                <button type="button" class="btn btn-secondary btn-sm" data-new="event_tags" aria-label="<?php echo h(t('+ New tag')); ?>" data-target="#tags"><?php echo t('+ New'); ?></button>
             </div>
             <?php echo $form->selectMultiple('tags', $tagOptions, $selectedTags); ?>
         </div>

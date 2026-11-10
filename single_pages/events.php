@@ -77,7 +77,7 @@ if ($image) {
     <h1 class="em-event-detail__name"><?php echo h($event->getName($locale)); ?></h1>
 
     <?php if ($video) { ?>
-        <video class="em-event-detail__video" controls preload="metadata"<?php echo ($poster || $image) ? ' poster="' . h(($poster ?: $image)->getURL()) . '"' : ''; ?> src="<?php echo h($video->getURL()); ?>"></video>
+        <video class="em-event-detail__video" controls preload="metadata"<?php echo ($poster || $image) ? ' poster="' . h(($poster ?: $image)->getURL()) . '"' : ''; ?> src="<?php echo h($video->getURL()); ?>"><a href="<?php echo h($video->getURL()); ?>"><?php echo t('Download the video'); ?></a></video>
     <?php } elseif ($image) {
         \View::element('picture', [
             'f' => $image,
@@ -89,7 +89,7 @@ if ($image) {
     <dl class="em-event-detail__facts">
         <dt><?php echo t('When'); ?></dt>
         <dd>
-            <?php echo h(EventDisplay::dateRange($event, $locale, $startDate, $endDate)); ?>
+            <time datetime="<?php echo h(SiteTimezone::localise($startDate, $zone)->format($event->isAllDay() ? 'Y-m-d' : 'Y-m-d\TH:i')); ?>"><?php echo h(EventDisplay::dateRange($event, $locale, $startDate, $endDate)); ?></time>
             <?php if ($rule) { ?><br><span class="em-event-detail__repeat"><?php echo h(EventDisplay::repeatSummary($rule, $locale)); ?></span><?php } ?>
         </dd>
 
@@ -100,7 +100,7 @@ if ($image) {
                 <?php if ($place->getAddress()) { ?><br><span class="em-event-detail__address"><?php echo h($place->getAddress()); ?></span><?php } ?>
                 <?php if ($place->getOnlineUrl()) { ?><br><a href="<?php echo h($place->getOnlineUrl()); ?>" rel="noopener"><?php echo t('Join online'); ?></a><?php } ?>
                 <?php if (empty($mapboxConfig) && ($mapLink = LocationMap::externalUrl($place))) { ?>
-                    <br><a href="<?php echo h($mapLink); ?>" target="_blank" rel="noopener"><?php echo t('View on map'); ?></a>
+                    <br><a href="<?php echo h($mapLink); ?>" target="_blank" rel="noopener"><?php echo t('View on map'); ?><span class="visually-hidden sr-only"> (<?php echo t('opens in a new tab'); ?>)</span></a>
                 <?php } ?>
             </dd>
         <?php } ?>
@@ -125,16 +125,16 @@ if ($image) {
     <?php } ?>
 
     <?php if (!empty($mapboxConfig)) { ?>
-        <mapbox-component class="em-event-detail__map" style="display:block;height:320px" data-config="<?php echo h((string) json_encode($mapboxConfig)); ?>"></mapbox-component>
+        <mapbox-component class="em-event-detail__map" role="region" aria-label="<?php echo h(t('Map of %s', $event->getName($locale))); ?>" style="display:block;height:320px" data-config="<?php echo h((string) json_encode($mapboxConfig)); ?>"></mapbox-component>
     <?php } ?>
 
     <?php if ($event->isPublished() && $event->getSlug($locale)) {
         $calendarLinks = EventDisplay::calendarLinks($event, $locale, IcsEndpoint::eventUrl($event, $locale), $zone); ?>
         <p class="em-event-detail__calendar">
             <?php echo t('Add to calendar'); ?>:
-            <a href="<?php echo h((string) Url::to('/ajax/events-manager/ics', $event->getSlug($locale))); ?>"><?php echo t('iCal / Apple'); ?></a> |
-            <a href="<?php echo h($calendarLinks['google']); ?>" target="_blank" rel="noopener"><?php echo t('Google'); ?></a> |
-            <a href="<?php echo h($calendarLinks['outlook']); ?>" target="_blank" rel="noopener"><?php echo t('Outlook'); ?></a>
+            <a href="<?php echo h((string) Url::to('/ajax/events-manager/ics', $event->getSlug($locale))); ?>"><?php echo t('iCal / Apple'); ?></a> <span aria-hidden="true">|</span>
+            <a href="<?php echo h($calendarLinks['google']); ?>" target="_blank" rel="noopener"><?php echo t('Google'); ?><span class="visually-hidden sr-only"> (<?php echo t('opens in a new tab'); ?>)</span></a> <span aria-hidden="true">|</span>
+            <a href="<?php echo h($calendarLinks['outlook']); ?>" target="_blank" rel="noopener"><?php echo t('Outlook'); ?><span class="visually-hidden sr-only"> (<?php echo t('opens in a new tab'); ?>)</span></a>
         </p>
     <?php } ?>
 

@@ -7,6 +7,7 @@ Notable changes to this project are documented here.
 ### Added
 
 - Block accessibility (WCAG 2.2 AA): focus is kept on filters and moved to the month heading after month/page navigation, updates and errors are announced through a status region instead of re-reading the whole block, decorative arrows are hidden from screen readers, dates use `<time>`, and titled blocks are labelled regions.
+- Event page accessibility (WCAG 2.2 AA): the date uses `<time>`, links that open a new tab say so, the calendar link separators and the map are hidden/labelled for screen readers, the video has a download fallback, and the dashboard "+ New" buttons have distinct names.
 - Repeating events (schema version 1.0.7; upgrade the package, then clear the
   cache). An event can repeat daily, weekly (same weekday) or monthly (same day
   of the month, months without that day are skipped), every N, until an
