@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace EventManagerKit\Frontend;
 
+use DateTimeZone;
 use IntlDateFormatter;
 use EventManagerKit\Entity\Event;
+use EventManagerKit\Time\SiteTimezone;
 
 /**
  * Human-readable dates for an event, in a given locale.
@@ -36,12 +38,11 @@ final class EventDisplay
     }
 
     /**
-     * "Add to calendar" links for a web calendar. Times are sent as local
-     * wall-clock values (no zone), matching how events are stored.
+     * "Add to calendar" links for a web calendar. Timed events are sent in UTC.
      *
      * @return array{google:string,outlook:string}
      */
-    public static function calendarLinks(Event $event, string $locale, ?string $url): array
+    public static function calendarLinks(Event $event, string $locale, ?string $url, DateTimeZone $zone): array
     {
         $allDay = $event->isAllDay();
         $title = $event->getName($locale);
@@ -53,7 +54,7 @@ final class EventDisplay
             'text' => $title,
             'dates' => $allDay
                 ? $event->getStartDate()->format('Ymd') . '/' . $event->getEndDate()->modify('+1 day')->format('Ymd')
-                : $event->getStartDate()->format('Ymd\THis') . '/' . $event->getEndDate()->format('Ymd\THis'),
+                : SiteTimezone::utc($event->getStartDate(), $zone) . '/' . SiteTimezone::utc($event->getEndDate(), $zone),
             'details' => trim($details . "\n" . ($url ?? '')),
             'location' => $where,
         ], '', '&', PHP_QUERY_RFC3986);
@@ -62,8 +63,8 @@ final class EventDisplay
             'path' => '/calendar/action/compose',
             'rru' => 'addevent',
             'subject' => $title,
-            'startdt' => $event->getStartDate()->format($allDay ? 'Y-m-d' : 'Y-m-d\TH:i:s'),
-            'enddt' => $event->getEndDate()->format($allDay ? 'Y-m-d' : 'Y-m-d\TH:i:s'),
+            'startdt' => $allDay ? $event->getStartDate()->format('Y-m-d') : SiteTimezone::localise($event->getStartDate(), $zone)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z'),
+            'enddt' => $allDay ? $event->getEndDate()->format('Y-m-d') : SiteTimezone::localise($event->getEndDate(), $zone)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z'),
             'allday' => $allDay ? 'true' : 'false',
             'body' => trim($details . "\n" . ($url ?? '')),
             'location' => $where,

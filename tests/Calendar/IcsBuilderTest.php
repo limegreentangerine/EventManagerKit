@@ -17,7 +17,7 @@ final class IcsBuilderTest extends TestCase
         (new \ReflectionProperty($event, 'id'))->setValue($event, 'abc-123');
         $event->setContent('en_GB', 'Open day; bring, friends', 'Line one<br>Line two');
 
-        return (new IcsBuilder())->calendar([$event], 'Site', 'en_GB', 'example.com', fn() => 'https://example.com/events/open-day', new DateTimeImmutable('2026-01-01 00:00', new \DateTimeZone('UTC')));
+        return (new IcsBuilder())->calendar([$event], 'Site', 'en_GB', 'example.com', fn() => 'https://example.com/events/open-day', new \DateTimeZone('Europe/London'), new DateTimeImmutable('2026-01-01 00:00', new \DateTimeZone('UTC')));
     }
 
     public function testTimedEvent(): void
@@ -25,13 +25,20 @@ final class IcsBuilderTest extends TestCase
         $event = (new Event())->setDates(new DateTimeImmutable('2026-11-20 10:00'), new DateTimeImmutable('2026-11-20 12:30'));
         $ics = $this->ics($event);
 
-        $this->assertStringContainsString("DTSTART:20261120T100000\r\n", $ics);
-        $this->assertStringContainsString("DTEND:20261120T123000\r\n", $ics);
+        $this->assertStringContainsString("DTSTART:20261120T100000Z\r\n", $ics);
+        $this->assertStringContainsString("DTEND:20261120T123000Z\r\n", $ics);
         $this->assertStringContainsString("DTSTAMP:20260101T000000Z\r\n", $ics);
         $this->assertStringContainsString('SUMMARY:Open day\; bring\, friends', $ics);
         $this->assertStringContainsString("URL:https://example.com/events/open-day\r\n", $ics);
         $this->assertStringStartsWith("BEGIN:VCALENDAR\r\n", $ics);
         $this->assertStringEndsWith("END:VCALENDAR\r\n", $ics);
+    }
+
+    public function testSummerTimeIsConvertedToUtc(): void
+    {
+        $event = (new Event())->setDates(new DateTimeImmutable('2026-07-20 10:00'), new DateTimeImmutable('2026-07-20 11:00'));
+
+        $this->assertStringContainsString("DTSTART:20260720T090000Z\r\n", $this->ics($event));
     }
 
     public function testAllDayEndIsExclusive(): void

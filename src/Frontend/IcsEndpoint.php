@@ -6,6 +6,7 @@ namespace EventManagerKit\Frontend;
 
 use EventManagerKit\Entity\Event;
 use Concrete\Core\Support\Facade\Url;
+use EventManagerKit\Time\SiteTimezone;
 use Doctrine\ORM\EntityManagerInterface;
 use EventManagerKit\Calendar\IcsBuilder;
 use EventManagerKit\Translation\LocaleContext;
@@ -25,7 +26,7 @@ final class IcsEndpoint
     {
         $locale = LocaleContext::active();
         $host = (string) parse_url((string) Url::to('/'), PHP_URL_HOST);
-        $body = (new IcsBuilder())->calendar($events, $name, $locale, $host, fn(Event $e) => self::eventUrl($e, $locale));
+        $body = (new IcsBuilder())->calendar($events, $name, $locale, $host, fn(Event $e) => self::eventUrl($e, $locale), SiteTimezone::current());
 
         return new Response($body, 200, [
             'Content-Type' => 'text/calendar; charset=utf-8',

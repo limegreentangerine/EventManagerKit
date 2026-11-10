@@ -41,10 +41,10 @@ final class EventDisplayTest extends TestCase
     public function testCalendarLinksCarryTheEventDetails(): void
     {
         $event = $this->event('2026-11-20 10:00', '2026-11-20 12:30')->setContent('en_GB', 'Open day');
-        $links = EventDisplay::calendarLinks($event, 'en_GB', 'https://example.com/events/open-day');
+        $links = EventDisplay::calendarLinks($event, 'en_GB', 'https://example.com/events/open-day', new \DateTimeZone('Europe/London'));
 
         $this->assertStringContainsString('text=Open%20day', $links['google']);
-        $this->assertStringContainsString('dates=20261120T100000%2F20261120T123000', $links['google']);
+        $this->assertStringContainsString('dates=20261120T100000Z%2F20261120T123000Z', $links['google']);
         $this->assertStringContainsString('subject=Open%20day', $links['outlook']);
         $this->assertStringContainsString('allday=false', $links['outlook']);
     }

@@ -2,7 +2,10 @@
 /** @var \EventManagerKit\Entity\Event $event @var string $locale @var bool $isDraft */
 
 use Concrete\Core\Support\Facade\Url;
+use EventManagerKit\Time\SiteTimezone;
 use EventManagerKit\Frontend\{EventDisplay, IcsEndpoint};
+
+$zone = SiteTimezone::current();
 
 $description = $event->getContent($locale)?->getDescription();
 
@@ -12,8 +15,8 @@ $schema = [
     '@context' => 'https://schema.org',
     '@type' => 'Event',
     'name' => $event->getName($locale),
-    'startDate' => $event->getStartDate()->format($dateFormat),
-    'endDate' => $event->getEndDate()->format($dateFormat),
+    'startDate' => SiteTimezone::localise($event->getStartDate(), $zone)->format($dateFormat),
+    'endDate' => SiteTimezone::localise($event->getEndDate(), $zone)->format($dateFormat),
     'eventStatus' => 'https://schema.org/EventScheduled',
     'inLanguage' => $locale,
 ];
@@ -85,7 +88,7 @@ if ($image) {
     <?php } ?>
 
     <?php if ($event->isPublished() && $event->getSlug($locale)) {
-        $calendarLinks = EventDisplay::calendarLinks($event, $locale, IcsEndpoint::eventUrl($event, $locale)); ?>
+        $calendarLinks = EventDisplay::calendarLinks($event, $locale, IcsEndpoint::eventUrl($event, $locale), $zone); ?>
         <p class="em-event-detail__calendar">
             <?php echo t('Add to calendar'); ?>:
             <a href="<?php echo h((string) Url::to('/ajax/events-manager/ics', $event->getSlug($locale))); ?>"><?php echo t('iCal / Apple'); ?></a> |

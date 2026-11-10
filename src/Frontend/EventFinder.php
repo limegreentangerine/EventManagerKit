@@ -34,6 +34,16 @@ final class EventFinder
     }
 
     /**
+     * Every published event (sitemap).
+     *
+     * @return list<Event>
+     */
+    public function allPublished(): array
+    {
+        return $this->base()->getQuery()->getResult();
+    }
+
+    /**
      * Events that have not finished yet.
      */
     public function upcoming(int $limit, ?DateTimeImmutable $now = null): EventPage

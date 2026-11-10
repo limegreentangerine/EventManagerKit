@@ -6,9 +6,9 @@ use Page;
 use Concrete\Core\Permission\Checker;
 use Concrete\Core\Support\Facade\Url;
 use Doctrine\ORM\EntityManagerInterface;
-use EventManagerKit\Frontend\EventFinder;
 use EventManagerKit\Translation\LocaleContext;
 use Concrete\Core\Page\Controller\PageController;
+use EventManagerKit\Frontend\{EventFinder, IcsEndpoint, SeoTags};
 
 /**
  * Public event page: /events/{slug}. A single page, so it renders in the
@@ -42,6 +42,17 @@ class Events extends PageController
         $text = $event->getContent($locale);
         $this->set('pageTitle', $event->getName($locale));
         $this->set('pageDescription', mb_substr(trim(strip_tags((string) $text?->getDescription())), 0, 160));
+        if ($event->isPublished()) {
+            $url = fn(string $l) => IcsEndpoint::eventUrl($event, $l);
+            $file = $event->getImageID() ? \Concrete\Core\File\File::getByID($event->getImageID()) : null;
+            $this->addHeaderItem(SeoTags::head(
+                (string) $url($locale),
+                SeoTags::alternates($event, $url),
+                $event->getName($locale),
+                (string) $this->get('pageDescription'),
+                $file ? $file->getURL() : null,
+            ));
+        }
         $this->set('event', $event);
         $this->set('locale', $locale);
         $this->set('isDraft', !$event->isPublished());

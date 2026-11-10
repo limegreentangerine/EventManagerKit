@@ -9,8 +9,14 @@ Notable changes to this project are documented here.
 - Calendar subscriptions: `GET /ajax/events-manager/ics/{slug}` (one event) and
   `GET /ajax/events-manager/feed.ics` (upcoming published events) return
   iCalendar files, and the event page has Add to calendar links (iCal,
-  Google, Outlook). Times are floating local times until timezone support
-  lands.
+  Google, Outlook). Timed events are exported in UTC.
+- Site timezone: stored event times mean local time in the Concrete site's
+  timezone. The ICS, web calendar links and schema.org `startDate`/`endDate`
+  (with UTC offset) use it, so daylight saving is handled.
+- SEO on the event page: canonical URL, `hreflang` alternates for each
+  language with a slug, and Open Graph/Twitter tags. `GET /events-sitemap.xml`
+  lists published events with their alternates; add it to `robots.txt`
+  (Concrete's own sitemap has no hook for extra URLs).
 - The calendar and list blocks load their events by `fetch` from
   `GET /ajax/events-manager/events` (HTML fragment in JSON, `Cache-Control:
 no-store`), so pages holding them can be cached without showing stale
