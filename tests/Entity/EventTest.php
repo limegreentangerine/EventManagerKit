@@ -97,4 +97,14 @@ final class EventTest extends TestCase
         $this->assertStringNotContainsString('10:00', $event->getStartString());
         $this->assertSame('', (new Event())->getTypeName());
     }
+
+    public function testPublishedByDefaultAndCanBeHidden(): void
+    {
+        $event = new Event();
+        $this->assertTrue($event->isPublished());
+        $this->assertSame('Published', $event->getStatusName());
+
+        $event->setPublished(false);
+        $this->assertSame('Draft', $event->getStatusName());
+    }
 }

@@ -11,7 +11,10 @@ use ClassKit\Entity\Core\GuidEntity;
  * @ORM\Entity
  * @ORM\Table(
  *      name="emEventContents",
- *      uniqueConstraints={@ORM\UniqueConstraint(name="uniq_event_locale", columns={"eventId", "locale"})}
+ *      uniqueConstraints={
+ *          @ORM\UniqueConstraint(name="uniq_event_locale", columns={"eventId", "locale"}),
+ *          @ORM\UniqueConstraint(name="uniq_locale_slug", columns={"locale", "slug"})
+ *      }
  * )
  */
 class EventContent extends GuidEntity
@@ -36,6 +39,13 @@ class EventContent extends GuidEntity
      * @ORM\Column(type="text", nullable=true)
      */
     protected ?string $description = null;
+
+    /**
+     * URL slug, unique within the locale. Null until assigned.
+     *
+     * @ORM\Column(type="string", length=200, nullable=true)
+     */
+    protected ?string $slug = null;
 
     public function getLocale(): string
     {
@@ -69,6 +79,18 @@ class EventContent extends GuidEntity
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): static
+    {
+        $this->slug = $slug;
 
         return $this;
     }

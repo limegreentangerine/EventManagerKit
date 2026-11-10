@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EventManagerKit\Import;
 
+use EventManagerKit\Slug\SlugService;
 use EventManagerKit\Translation\LocaleContext;
 use Doctrine\ORM\EntityManagerInterface;
 use EventManagerKit\Entity\{Event, EventTag, EventType, Location};
@@ -25,8 +26,9 @@ final class ImportPersister
     {
         $created = $skipped = 0;
         $default = LocaleContext::default();
+        $slugs = SlugService::forEntityManager($this->em);
 
-        $this->em->wrapInTransaction(function () use ($plan, $default, &$created, &$skipped) {
+        $this->em->wrapInTransaction(function () use ($plan, $default, $slugs, &$created, &$skipped) {
             foreach ($plan->rows as $row) {
                 if ($this->exists($row, $default)) {
                     $skipped++;
@@ -37,6 +39,8 @@ final class ImportPersister
                 foreach ($row->names as $locale => $name) {
                     $event->setContent($locale, $name, $row->descriptions[$locale] ?? null);
                 }
+
+                $slugs->fill($event);
 
                 $parent = $row->location ? $this->named(Location::class, $row->location, $default) : null;
                 $event->setLocation($row->subLocation ? $this->named(Location::class, $row->subLocation, $default, $parent) : $parent);

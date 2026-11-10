@@ -4,6 +4,7 @@ namespace Concrete\Package\EventManagerKit\Controller\SinglePage\Dashboard\Event
 
 use DateTimeImmutable;
 use EventManagerKit\Entity\{Event, EventTag, EventType, Location};
+use EventManagerKit\Slug\{SlugGenerator, SlugService};
 use Doctrine\ORM\EntityManagerInterface;
 use EventManagerKit\Translation\LocaleContext;
 use Concrete\Core\Http\ResponseFactoryInterface;
@@ -90,6 +91,23 @@ class Events extends DashboardPageController
             $this->error->add(t('Please enter an event name for the default language (%s).', $default));
         }
 
+        // Optional per-language slugs; blank means "generate from the name".
+        $slugs = SlugService::forEntityManager($this->em);
+        $chosenSlugs = [];
+        foreach ((array) ($post['slug'] ?? []) as $locale => $slug) {
+            $slug = strtolower(trim((string) $slug));
+            if ($slug === '' || !isset($names[$locale])) {
+                continue;
+            }
+            if (!SlugGenerator::isValid($slug)) {
+                $this->error->add(t('The URL slug for %s may only contain lowercase letters, numbers and single hyphens.', $locale));
+            } elseif ($slugs->isTaken($locale, $slug, $event)) {
+                $this->error->add(t('The URL slug "%s" is already used by another event in %s.', $slug, $locale));
+            } else {
+                $chosenSlugs[$locale] = $slug;
+            }
+        }
+
         $allDay = !empty($post['allDay']);
         $start = $this->parseDate((string) ($post['startDate'] ?? ''), $allDay);
         $end = $this->parseDate((string) ($post['endDate'] ?? ''), $allDay);
@@ -118,17 +136,19 @@ class Events extends DashboardPageController
 
         if (!$this->error->has()) {
             $event ??= new Event();
-            $event->setDates($start, $end)->setAllDay($allDay)->setLocation($location)->setType($type);
+            $event->setDates($start, $end)->setAllDay($allDay)->setPublished(!empty($post['published']))->setLocation($location)->setType($type);
 
             $descriptions = (array) ($post['description'] ?? []);
             foreach (LocaleContext::siteLocales() as $locale) {
                 if (isset($names[$locale])) {
-                    $event->setContent($locale, $names[$locale], trim((string) ($descriptions[$locale] ?? '')) ?: null);
+                    $event->setContent($locale, $names[$locale], trim((string) ($descriptions[$locale] ?? '')) ?: null, $chosenSlugs[$locale] ?? null);
                 } elseif ($content = $event->getContents()->filter(fn($c) => $c->getLocale() === $locale)->first()) {
                     // Name cleared for a language: drop that translation (the fallback covers it).
                     $event->removeContent($content);
                 }
             }
+
+            $slugs->fill($event);
 
             foreach ($event->getTags()->toArray() as $existing) {
                 $event->removeTag($existing);

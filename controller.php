@@ -4,12 +4,15 @@ namespace Concrete\Package\EventManagerKit;
 
 use Concrete\Core\Entity\Package;
 use ClassKit\Package\PackageController;
-use ClassKit\Package\Traits\PageTrait;
+use ClassKit\Package\Traits\{BlockTrait, PageTrait};
 use Concrete\Core\Page\{Page, Single as SinglePage};
 use Concrete\Core\Database\Connection\Connection;
+use Concrete\Core\Asset\{Asset, AssetList};
+use EventManagerKit\Frontend\EventsEndpoint;
 
 class Controller extends PackageController
 {
+    use BlockTrait;
     use PageTrait;
 
     /**
@@ -26,7 +29,7 @@ class Controller extends PackageController
      *
      * @var string
      */
-    protected $pkgVersion = '1.0.0';
+    protected $pkgVersion = '1.0.4';
 
     /**
      * The minimum Concrete version compatible with the package.
@@ -114,6 +117,8 @@ class Controller extends PackageController
     public function installOrUpgrade(Package $pkg)
     {
         // Entities are installed from src/Entity by the package install.
+        $this->autoInstallBlocks($pkg);
+
         $pages = [
             '' => [t('Event Manager'), t('Event Manager Dashboard')],
             '/events' => [t('Events'), t('Manage events')],
@@ -123,6 +128,11 @@ class Controller extends PackageController
             '/import' => [t('Import'), t('Import events from CSV')],
         ];
         $db = $this->app->make(Connection::class);
+
+        // Public event page, /events/{slug}; kept out of navigation menus.
+        $events = $this->addSinglePage('/events', $pkg, t('Events'), t('Public event page'));
+        $events->setAttribute('exclude_nav', true);
+
         foreach ($pages as $suffix => [$name, $description]) {
             $path = '/dashboard/event_manager' . $suffix;
             $this->addSinglePage($path, $pkg, $name, $description);
@@ -136,7 +146,20 @@ class Controller extends PackageController
         }
     }
 
-    public function registerRoutes(): void {}
+    public function on_start()
+    {
+        parent::on_start();
+
+        $al = AssetList::getInstance();
+        $al->register('javascript', 'event_manager_kit/events', 'js/events.js', ['position' => Asset::ASSET_POSITION_FOOTER, 'minify' => false, 'combine' => true], 'event_manager_kit');
+        $al->registerGroup('event_manager_kit/events', [['javascript', 'event_manager_kit/events']]);
+    }
+
+    public function registerRoutes(): void
+    {
+        // Public JSON endpoint the blocks fetch events from. Exclude it from CDN caching.
+        $this->app->make('router')->register(EventsEndpoint::PATH, EventsEndpoint::class . '::events', 'event_manager_kit.events', [], [], '', [], ['GET']);
+    }
 
     public function registerEvents(): void {}
 }

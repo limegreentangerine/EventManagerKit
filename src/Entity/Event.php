@@ -40,6 +40,13 @@ class Event extends UpdatedGuidEntity
     protected bool $allDay = false;
 
     /**
+     * Draft events are visible in the dashboard only.
+     *
+     * @ORM\Column(type="boolean", nullable=false, options={"default": 1})
+     */
+    protected bool $published = true;
+
+    /**
      * @ORM\ManyToOne(targetEntity="Location")
      * @ORM\JoinColumn(name="locationId", referencedColumnName="id", nullable=true, onDelete="SET NULL")
      */
@@ -90,21 +97,34 @@ class Event extends UpdatedGuidEntity
     /**
      * Set (or create) the content for exactly this locale.
      */
-    public function setContent(string $locale, string $name, ?string $description = null): static
+    public function setContent(string $locale, string $name, ?string $description = null, ?string $slug = null): static
     {
         foreach ($this->contents as $content) {
             if (strcasecmp($content->getLocale(), $locale) === 0) {
                 $content->setName($name)->setDescription($description);
+                // Keep the existing slug (links in the wild) unless a new one is given.
+                if ($slug !== null) {
+                    $content->setSlug($slug);
+                }
 
                 return $this;
             }
         }
 
         $this->contents->add(
-            (new EventContent())->setEvent($this)->setLocale($locale)->setName($name)->setDescription($description),
+            (new EventContent())->setEvent($this)->setLocale($locale)->setName($name)->setDescription($description)->setSlug($slug),
         );
 
         return $this;
+    }
+
+    /**
+     * Slug in the displayed locale (falling back like content does), or null
+     * when the event has none yet.
+     */
+    public function getSlug(?string $locale = null): ?string
+    {
+        return $this->getContent($locale)?->getSlug();
     }
 
     public function removeContent(EventContent $content): static
@@ -172,6 +192,23 @@ class Event extends UpdatedGuidEntity
     public function getTypeName(): string
     {
         return $this->type ? $this->type->getName() : '';
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->published;
+    }
+
+    public function setPublished(bool $published): static
+    {
+        $this->published = $published;
+
+        return $this;
+    }
+
+    public function getStatusName(): string
+    {
+        return $this->published ? t('Published') : t('Draft');
     }
 
     public function isAllDay(): bool

@@ -2,6 +2,7 @@
 $p = (array) $formContent;
 $id = $entity ? $entity->getID() : ($p['id'] ?? '');
 $allDay = $formContent ? !empty($p['allDay']) : ($entity && $entity->isAllDay());
+$published = $formContent ? !empty($p['published']) : ($entity ? $entity->isPublished() : true);
 $dateFormat = $allDay ? 'Y-m-d' : 'Y-m-d\TH:i';
 $start = $p['startDate'] ?? ($entity ? $entity->getStartDate()->format($dateFormat) : '');
 $end = $p['endDate'] ?? ($entity ? $entity->getEndDate()->format($dateFormat) : '');
@@ -18,18 +19,28 @@ if ($entity) {
     <?php echo $token->output('submit'); ?>
     <?php echo $id ? $form->hidden('id', $id) : ''; ?>
 
+    <div class="form-check mb-4">
+        <?php echo $form->checkbox('published', '1', $published, ['id' => 'published']); ?>
+        <?php echo $form->label('published', t('Published (visible on the website)'), ['class' => 'form-check-label']); ?>
+    </div>
+
     <fieldset>
         <legend><?php echo t('Content'); ?></legend>
         <?php foreach ($locales as $locale) {
             $content = $entity ? $entity->getContents()->filter(fn($c) => $c->getLocale() === $locale)->first() : null;
             $name = $p['name'][$locale] ?? ($content ? $content->getName() : '');
             $description = $p['description'][$locale] ?? ($content ? (string) $content->getDescription() : '');
+            $slug = $p['slug'][$locale] ?? ($content ? (string) $content->getSlug() : '');
             ?>
             <div class="mb-4">
                 <h6><?php echo h($locale); ?><?php if ($locale === $defaultLocale) { ?> <span class="text-muted small"><?php echo t('(default, required)'); ?></span><?php } ?></h6>
                 <div class="form-group mb-2">
                     <?php echo $form->label('name_' . $locale, t('Name')); ?>
                     <?php echo $form->text('name[' . $locale . ']', $name, ['id' => 'name_' . $locale]); ?>
+                </div>
+                <div class="form-group mb-2">
+                    <?php echo $form->label('slug_' . $locale, t('URL slug')); ?>
+                    <?php echo $form->text('slug[' . $locale . ']', $slug, ['id' => 'slug_' . $locale, 'placeholder' => t('Generated from the name if left blank')]); ?>
                 </div>
                 <div class="form-group">
                     <?php echo $form->label('description_' . $locale, t('Description')); ?>
