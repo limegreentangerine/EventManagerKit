@@ -157,7 +157,7 @@ $(function () {
 
     // "+ New": show the existing add form for a location/type/tag in a dialog,
     // create it over AJAX and select it here without leaving the event.
-    var base = <?php echo json_encode((string) URL::to('/dashboard/event_manager')); ?>;
+    var base = <?php echo json_encode(rtrim((string) URL::to('/dashboard/event_manager'), '/')); ?>;
     $('[data-new]').on('click', function () {
         var path = $(this).data('new'), $target = $($(this).data('target')), url = base + '/' + path;
         $.get(url + '/add', function (html) {
