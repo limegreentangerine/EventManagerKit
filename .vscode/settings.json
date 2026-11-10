@@ -1,3 +1,21 @@
 {
-	"cSpell.words": ["localise"]
+	"cSpell.words": [
+		"addevent",
+		"CALNAME",
+		"CALSCALE",
+		"Digwyddiad",
+		"DTEND",
+		"DTSTAMP",
+		"DTSTART",
+		"enddt",
+		"EXDATE",
+		"Gwanwyn",
+		"localise",
+		"materialised",
+		"PRODID",
+		"RRULE",
+		"startdt",
+		"VCALENDAR",
+		"vevent"
+	]
 }
