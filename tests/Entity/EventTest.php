@@ -127,6 +127,16 @@ final class EventTest extends TestCase
         $this->assertNull($event->setLink(null, '')->getLinkType());
     }
 
+    public function testPageLinkHrefIsNullWhenPageDeleted(): void
+    {
+        require_once __DIR__ . '/../Stubs/ConcretePageStubs.php';
+        \Concrete\Core\Page\Page::$pages = [5 => true];
+
+        $event = new Event();
+        $this->assertSame('https://site.test/page', $event->setLink('page', '5')->getLinkHref());
+        $this->assertNull($event->setLink('page', '99')->getLinkHref());
+    }
+
     public function testInvalidLinkIsRejected(): void
     {
         $this->expectException(\InvalidArgumentException::class);

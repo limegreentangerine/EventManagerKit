@@ -19,6 +19,7 @@ use EventManagerKit\Translation\{LocaleContext, Translations};
  */
 class Event extends UpdatedGuidEntity
 {
+    public const LINK_TYPES = ['page', 'url', 'email', 'tel'];
     /**
      * @ORM\OneToMany(targetEntity="EventContent", mappedBy="event", cascade={"persist", "remove"}, orphanRemoval=true)
      */
@@ -98,8 +99,6 @@ class Event extends UpdatedGuidEntity
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     protected ?string $linkValue = null;
-
-    public const LINK_TYPES = ['page', 'url', 'email', 'tel'];
 
     public function __construct()
     {
@@ -386,8 +385,8 @@ class Event extends UpdatedGuidEntity
             'url' => $this->linkValue,
             'email' => 'mailto:' . $this->linkValue,
             'tel' => 'tel:' . preg_replace('/[^0-9+]/', '', (string) $this->linkValue),
-            'page' => ($page = \Concrete\Core\Page\Page::getByID((int) $this->linkValue)) && !$page->isError()
-                ? (string) \Concrete\Core\Support\Facade\Url::to($page) : null,
+            'page' => ($page = \Concrete\Core\Page\Page::getByID((int) $this->linkValue))->isError()
+                ? null : (string) \Concrete\Core\Support\Facade\Url::to($page),
             default => null,
         };
     }

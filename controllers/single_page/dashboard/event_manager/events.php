@@ -3,11 +3,11 @@
 namespace Concrete\Package\EventManagerKit\Controller\SinglePage\Dashboard\EventManager;
 
 use DateTimeImmutable;
-use Doctrine\ORM\EntityManagerInterface;
-use Concrete\Core\File\{File, Type\Type as FileType};
 use Concrete\Core\Permission\Checker;
+use Doctrine\ORM\EntityManagerInterface;
 use EventManagerKit\Translation\LocaleContext;
 use Concrete\Core\Http\ResponseFactoryInterface;
+use Concrete\Core\File\{File, Type\Type as FileType};
 use EventManagerKit\Slug\{SlugGenerator, SlugService};
 use Concrete\Core\Page\Controller\DashboardPageController;
 use EventManagerKit\Entity\{Event, EventTag, EventType, Location};
@@ -71,6 +71,23 @@ class Events extends DashboardPageController
         return null;
     }
 
+    /** Returns the file ID if it exists, is of the generic type and the user may view it; else null (and an error when one was submitted). */
+    private function mediaFile(mixed $id, int $type, string $label): ?int
+    {
+        $id = (int) $id;
+        if ($id <= 0) {
+            return null;
+        }
+        $file = File::getByID($id);
+        if (!$file || $file->getTypeObject()->getGenericType() !== $type || !(new Checker($file))->canViewFile()) {
+            $this->error->add(t('The selected %s is not valid.', $label));
+
+            return null;
+        }
+
+        return $id;
+    }
+
     public function on_start()
     {
         parent::on_start();
@@ -119,23 +136,6 @@ class Events extends DashboardPageController
         }
         $this->set('entity', $event);
         $this->prepareForm();
-    }
-
-    /** Returns the file ID if it exists, is of the generic type and the user may view it; else null (and an error when one was submitted). */
-    private function mediaFile(mixed $id, int $type, string $label): ?int
-    {
-        $id = (int) $id;
-        if ($id <= 0) {
-            return null;
-        }
-        $file = File::getByID($id);
-        if (!$file || $file->getTypeObject()->getGenericType() !== $type || !(new Checker($file))->canViewFile()) {
-            $this->error->add(t('The selected %s is not valid.', $label));
-
-            return null;
-        }
-
-        return $id;
     }
 
     public function save()
