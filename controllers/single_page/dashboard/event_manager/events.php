@@ -171,8 +171,8 @@ class Events extends DashboardPageController
         if (!$end) {
             $this->error->add(t('Please enter a valid end date.'));
         }
-        if ($start && $end && $end < $start) {
-            $this->error->add(t('The end date cannot be before the start date.'));
+        if ($start && $end && $end <= $start) {
+            $this->error->add(t('The end date must be after the start date.'));
         }
 
         $location = $this->lookup(Location::class, $post['location'] ?? '', t('location'));
