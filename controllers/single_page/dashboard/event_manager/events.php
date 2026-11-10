@@ -4,6 +4,8 @@ namespace Concrete\Package\EventManagerKit\Controller\SinglePage\Dashboard\Event
 
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Concrete\Core\File\{File, Type\Type as FileType};
+use Concrete\Core\Permission\Checker;
 use EventManagerKit\Translation\LocaleContext;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use EventManagerKit\Slug\{SlugGenerator, SlugService};
@@ -119,6 +121,23 @@ class Events extends DashboardPageController
         $this->prepareForm();
     }
 
+    /** Returns the file ID if it exists, is of the generic type and the user may view it; else null (and an error when one was submitted). */
+    private function mediaFile(mixed $id, int $type, string $label): ?int
+    {
+        $id = (int) $id;
+        if ($id <= 0) {
+            return null;
+        }
+        $file = File::getByID($id);
+        if (!$file || $file->getTypeObject()->getGenericType() !== $type || !(new Checker($file))->canViewFile()) {
+            $this->error->add(t('The selected %s is not valid.', $label));
+
+            return null;
+        }
+
+        return $id;
+    }
+
     public function save()
     {
         if (!$this->request->isPost()) {
@@ -194,10 +213,14 @@ class Events extends DashboardPageController
             }
         }
 
+        $imageID = $this->mediaFile($post['imageID'] ?? 0, FileType::T_IMAGE, t('image'));
+        $videoID = $this->mediaFile($post['videoID'] ?? 0, FileType::T_VIDEO, t('video'));
+        $posterID = $this->mediaFile($post['videoPosterID'] ?? 0, FileType::T_IMAGE, t('video poster'));
+
         if (!$this->error->has()) {
             $event ??= new Event();
             $event->setDates($start, $end)->setAllDay($allDay)->setPublished(!empty($post['published']))->setLocation($location)->setType($type)
-                ->setMedia((int) ($post['imageID'] ?? 0), (int) ($post['videoID'] ?? 0), (int) ($post['videoPosterID'] ?? 0))
+                ->setMedia($imageID, $videoID, $posterID)
                 ->setLink($linkType ?: null, $linkValue);
 
             $descriptions = (array) ($post['description'] ?? []);
