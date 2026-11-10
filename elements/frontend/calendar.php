@@ -19,13 +19,13 @@ $next = $query->month->modify('+1 month');
 ?>
 
 <nav class="em-events__months" aria-label="<?php echo h(t('Month')); ?>">
-    <a href="<?php echo $link($query->toParams($prev)); ?>" rel="prev">&larr; <?php echo h(EventDisplay::monthTitle($prev, $locale)); ?></a>
-    <strong aria-current="date"><?php echo h(EventDisplay::monthTitle($query->month, $locale)); ?></strong>
-    <a href="<?php echo $link($query->toParams($next)); ?>" rel="next"><?php echo h(EventDisplay::monthTitle($next, $locale)); ?> &rarr;</a>
+    <a href="<?php echo $link($query->toParams($prev)); ?>" rel="prev"><span aria-hidden="true">&larr;</span> <?php echo h(EventDisplay::monthTitle($prev, $locale)); ?></a>
+    <strong class="em-events__month" tabindex="-1" aria-current="date"><?php echo h(EventDisplay::monthTitle($query->month, $locale)); ?></strong>
+    <a href="<?php echo $link($query->toParams($next)); ?>" rel="next"><?php echo h(EventDisplay::monthTitle($next, $locale)); ?> <span aria-hidden="true">&rarr;</span></a>
 </nav>
 
 <?php if ($filters) { ?>
-    <form class="em-events__filters" method="get" action="">
+    <form class="em-events__filters" method="get" action="" role="search" aria-label="<?php echo h(t('Filter events')); ?>">
         <input type="hidden" name="month" value="<?php echo h($query->month->format('Y-m')); ?>">
         <?php foreach ([
             'type' => [t('All event types'), $filters['types'], $query->typeId],
@@ -60,10 +60,10 @@ $next = $query->month->modify('+1 month');
 <?php if ($query->page > 1 || $hasMore) { ?>
     <nav class="em-events__pages" aria-label="<?php echo h(t('Pages')); ?>">
         <?php if ($query->page > 1) { ?>
-            <a href="<?php echo $link($query->toParams(null, $query->page - 1)); ?>" rel="prev">&larr; <?php echo t('Previous'); ?></a>
+            <a href="<?php echo $link($query->toParams(null, $query->page - 1)); ?>" rel="prev"><span aria-hidden="true">&larr;</span> <?php echo t('Previous'); ?></a>
         <?php } ?>
         <?php if ($hasMore) { ?>
-            <a href="<?php echo $link($query->toParams(null, $query->page + 1)); ?>" rel="next"><?php echo t('Next'); ?> &rarr;</a>
+            <a href="<?php echo $link($query->toParams(null, $query->page + 1)); ?>" rel="next"><?php echo t('Next'); ?> <span aria-hidden="true">&rarr;</span></a>
         <?php } ?>
     </nav>
 <?php } ?>

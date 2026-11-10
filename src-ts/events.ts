@@ -35,6 +35,14 @@
 			});
 		}
 
+		// The response replaces the controls, so remember what had focus to restore it.
+		const active = document.activeElement as HTMLElement | null;
+		const inContent = !!active && content.contains(active);
+		const field = inContent ? active.getAttribute('name') : null;
+		const wasLink = inContent && active.tagName === 'A';
+		const status = section.querySelector<HTMLElement>('.em-events__status');
+		const loaded = section.hasAttribute('data-em-loaded');
+
 		section.setAttribute('aria-busy', 'true');
 
 		fetch(section.getAttribute('data-em-endpoint') + '?' + params.toString(), {
@@ -50,6 +58,17 @@
 			.then((data) => {
 				// Server-rendered, escaped markup from our own endpoint.
 				content.innerHTML = data.html;
+				section.setAttribute('data-em-loaded', '');
+
+				// WCAG 2.4.3 / 4.1.3: keep focus in place and announce the update.
+				if (field) {
+					content.querySelector<HTMLElement>('[name="' + field + '"]')?.focus();
+				} else if (wasLink) {
+					content.querySelector<HTMLElement>('.em-events__month')?.focus();
+				}
+				if (status && loaded) {
+					status.textContent = section.getAttribute('data-em-updated');
+				}
 
 				if (push && view === 'calendar') {
 					const shown = new URLSearchParams();
@@ -69,6 +88,9 @@
 			})
 			.catch(() => {
 				content.textContent = section.getAttribute('data-em-error');
+				if (status) {
+					status.textContent = section.getAttribute('data-em-error');
+				}
 			})
 			.then(() => {
 				section.removeAttribute('aria-busy');

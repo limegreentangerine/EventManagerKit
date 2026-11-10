@@ -35,6 +35,13 @@
 				}
 			});
 		}
+		// The response replaces the controls, so remember what had focus to restore it.
+		const active = document.activeElement;
+		const inContent = !!active && content.contains(active);
+		const field = inContent ? active.getAttribute('name') : null;
+		const wasLink = inContent && active.tagName === 'A';
+		const status = section.querySelector('.em-events__status');
+		const loaded = section.hasAttribute('data-em-loaded');
 		section.setAttribute('aria-busy', 'true');
 		fetch(section.getAttribute('data-em-endpoint') + '?' + params.toString(), {
 			headers: { Accept: 'application/json' },
@@ -47,8 +54,23 @@
 				return response.json();
 			})
 			.then((data) => {
+				var _a, _b;
 				// Server-rendered, escaped markup from our own endpoint.
 				content.innerHTML = data.html;
+				section.setAttribute('data-em-loaded', '');
+				// WCAG 2.4.3 / 4.1.3: keep focus in place and announce the update.
+				if (field) {
+					(_a = content.querySelector('[name="' + field + '"]')) === null || _a === void 0
+						? void 0
+						: _a.focus();
+				} else if (wasLink) {
+					(_b = content.querySelector('.em-events__month')) === null || _b === void 0
+						? void 0
+						: _b.focus();
+				}
+				if (status && loaded) {
+					status.textContent = section.getAttribute('data-em-updated');
+				}
 				if (push && view === 'calendar') {
 					const shown = new URLSearchParams();
 					KEYS.forEach((key) => {
@@ -67,6 +89,9 @@
 			})
 			.catch(() => {
 				content.textContent = section.getAttribute('data-em-error');
+				if (status) {
+					status.textContent = section.getAttribute('data-em-error');
+				}
 			})
 			.then(() => {
 				section.removeAttribute('aria-busy');

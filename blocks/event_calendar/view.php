@@ -9,18 +9,20 @@
  */
 ?>
 
-<section class="em-events em-events--calendar"
+<section<?php echo !empty($title) ? ' aria-labelledby="em-title-' . (int) $bID . '"' : ''; ?> class="em-events em-events--calendar"
     data-em-endpoint="<?php echo h($endpoint); ?>"
     data-em-view="calendar"
     data-em-locale="<?php echo h($locale); ?>"
     data-em-filters="<?php echo !empty($showFilters) ? '1' : '0'; ?>"
+    data-em-updated="<?php echo h(t('Events updated.')); ?>"
     data-em-error="<?php echo h(t('Events could not be loaded. Please try again later.')); ?>">
     <?php if (!empty($title)) { ?>
-        <h2 class="em-events__title"><?php echo h($title); ?></h2>
+        <h2 class="em-events__title" id="em-title-<?php echo (int) $bID; ?>"><?php echo h($title); ?></h2>
     <?php } ?>
 
-    <div class="em-events__content" aria-live="polite">
+    <div class="em-events__content">
         <p class="em-events__loading"><?php echo t('Loading events…'); ?></p>
         <noscript><p><?php echo t('Please enable JavaScript to see events.'); ?></p></noscript>
     </div>
+    <p class="em-events__status visually-hidden sr-only" role="status"></p>
 </section>

@@ -15,7 +15,7 @@ $slug = $event->getSlug($locale);
             <?php echo h($event->getName($locale)); ?>
         <?php } ?>
     </h3>
-    <p class="em-event__date"><?php echo h(EventDisplay::dateRange($event, $locale, $occurrence->start, $occurrence->end)); ?></p>
+    <p class="em-event__date"><time datetime="<?php echo h($occurrence->start->format($event->isAllDay() ? 'Y-m-d' : 'Y-m-d\TH:i')); ?>"><?php echo h(EventDisplay::dateRange($event, $locale, $occurrence->start, $occurrence->end)); ?></time></p>
     <?php if ($event->getLocation()) { ?>
         <p class="em-event__location"><?php echo h($event->getLocation()->getFullName($locale)); ?></p>
     <?php } ?>
