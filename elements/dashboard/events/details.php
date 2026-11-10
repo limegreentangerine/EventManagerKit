@@ -71,15 +71,24 @@ if ($entity) {
     <fieldset class="mt-4">
         <legend><?php echo t('Details'); ?></legend>
         <div class="form-group mb-3">
-            <?php echo $form->label('location', t('Location')); ?>
+            <div class="d-flex justify-content-between align-items-baseline">
+                <?php echo $form->label('location', t('Location')); ?>
+                <button type="button" class="btn btn-secondary btn-sm" data-new="locations" data-target="#location"><?php echo t('+ New'); ?></button>
+            </div>
             <?php echo $form->select('location', $locationOptions, $selectedLocation); ?>
         </div>
         <div class="form-group mb-3">
-            <?php echo $form->label('type', t('Event Type')); ?>
+            <div class="d-flex justify-content-between align-items-baseline">
+                <?php echo $form->label('type', t('Event Type')); ?>
+                <button type="button" class="btn btn-secondary btn-sm" data-new="event_types" data-target="#type"><?php echo t('+ New'); ?></button>
+            </div>
             <?php echo $form->select('type', $typeOptions, $selectedType); ?>
         </div>
         <div class="form-group mb-3">
-            <?php echo $form->label('tags', t('Tags')); ?>
+            <div class="d-flex justify-content-between align-items-baseline">
+                <?php echo $form->label('tags', t('Tags')); ?>
+                <button type="button" class="btn btn-secondary btn-sm" data-new="event_tags" data-target="#tags"><?php echo t('+ New'); ?></button>
+            </div>
             <?php echo $form->selectMultiple('tags', $tagOptions, $selectedTags); ?>
         </div>
     </fieldset>
@@ -101,6 +110,41 @@ $(function () {
             var v = this.value;
             this.type = type;
             this.value = type === 'date' ? v.substring(0, 10) : (v ? v.substring(0, 10) + 'T00:00' : '');
+        });
+    });
+
+    // "+ New": show the existing add form for a location/type/tag in a dialog,
+    // create it over AJAX and select it here without leaving the event.
+    var base = <?php echo json_encode((string) URL::to('/dashboard/event_manager')); ?>;
+    $('[data-new]').on('click', function () {
+        var path = $(this).data('new'), $target = $($(this).data('target')), url = base + '/' + path;
+        $.get(url + '/add', function (html) {
+            var $form = $('<div>').append($.parseHTML(html)).find('input[name^="name["]').first().closest('form');
+            $form.find('.ccm-dashboard-form-actions-wrapper').remove();
+            // Keep ids/labels from clashing with the event form's own name_<locale> fields.
+            $form.find('[id]').each(function () { this.id = 'new_' + this.id; });
+            $form.find('label[for]').each(function () { this.htmlFor = 'new_' + this.htmlFor; });
+            var $dialog = $('<div class="ccm-ui">').append('<div class="alert alert-danger d-none" data-errors></div>', $form,
+                '<div class="dialog-buttons"><button type="button" class="btn btn-secondary float-start" data-dialog-action="cancel"><?php echo t('Cancel'); ?></button>'
+                + '<button type="button" class="btn btn-primary float-end" data-save><?php echo t('Save'); ?></button></div>');
+            $dialog.find('[data-save]').on('click', function () {
+                $.post(url + '/create', $form.serialize(), function (r) {
+                    if (r && r.id) {
+                        var opt = new Option(r.label, r.id, true, true);
+                        $target.append(opt);
+                        if (!$target.prop('multiple')) { $target.val(r.id); }
+                        jQuery.fn.dialog.closeTop();
+                    } else {
+                        var $e = $dialog.find('[data-errors]').removeClass('d-none').empty();
+                        $.each(r.errors || [], function (i, m) { $e.append($('<div>').text(m)); });
+                    }
+                }, 'json').fail(function () {
+                    $dialog.find('[data-errors]').removeClass('d-none').text(<?php echo json_encode(t('Something went wrong. Please try again.')); ?>);
+                });
+            });
+            $dialog.find('[data-dialog-action=cancel]').on('click', function () { jQuery.fn.dialog.closeTop(); });
+            $form.on('submit', function (e) { e.preventDefault(); $dialog.find('[data-save]').trigger('click'); });
+            jQuery.fn.dialog.open({element: $dialog, modal: true, width: 500, height: 'auto', title: $.trim($('label[for=' + $target.attr('id') + ']').text())});
         });
     });
 });

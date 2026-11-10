@@ -73,6 +73,11 @@ class Locations extends NamedEntityPage
         return $parent ?: null;
     }
 
+    protected function optionLabel($entity): string
+    {
+        return $entity->getFullName();
+    }
+
     protected function applyExtra($entity, ?Location $parent): void
     {
         $entity->setParent($parent);

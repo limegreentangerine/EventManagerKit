@@ -44,6 +44,60 @@ abstract class NamedEntityPage extends DashboardPageController
     /** Hook: copy extra fields onto the entity before saving. */
     protected function applyExtra($entity, ?Location $parent): void {}
 
+    /** Hook: label shown for this entity in a <select>. */
+    protected function optionLabel($entity): string
+    {
+        return $entity->getName();
+    }
+
+    /**
+     * Validate and store the posted form. Returns the saved entity, or null
+     * with messages added to $this->error.
+     */
+    protected function persist(array $post, &$entity = null)
+    {
+        $entity = !empty($post['id']) ? $this->em->find($this->entityClass(), (string) $post['id']) : null;
+        $names = array_filter(array_map('trim', (array) ($post['name'] ?? [])), 'strlen');
+        $default = LocaleContext::default();
+
+        if (!$this->token->validate('submit')) {
+            $this->error->add($this->token->getErrorMessage());
+        }
+        if (!$names) {
+            $this->error->add(t('Please enter a name in at least one language.'));
+        }
+        if (!$entity && !isset($names[$default])) {
+            $this->error->add(t('Please enter a name for the default language (%s).', $default));
+        }
+        if (!empty($post['id']) && !$entity) {
+            $this->error->add(t('Unable to find the specified %s.', $this->label()));
+        }
+
+        $handle = $entity ? $entity->getHandle() : $this->app->make('helper/text')->handle($names[$default] ?? (string) reset($names));
+        if (!$entity && $handle !== '' && $this->em->getRepository($this->entityClass())->findOneBy(['handle' => $handle])) {
+            $this->error->add(t('A %s with this name already exists.', $this->label()));
+        }
+
+        $parent = $this->resolveParent($post, $entity);
+
+        if (!$this->error->has()) {
+            $class = $this->entityClass();
+            $entity ??= (new $class())->setHandle($handle);
+            $this->applyExtra($entity, $parent);
+            foreach (LocaleContext::siteLocales() as $locale) {
+                if (isset($names[$locale])) {
+                    $entity->setName($locale, $names[$locale]);
+                }
+            }
+            $this->em->persist($entity);
+            $this->em->flush();
+
+            return $entity;
+        }
+
+        return null;
+    }
+
     public function on_start()
     {
         parent::on_start();
@@ -104,50 +158,27 @@ abstract class NamedEntityPage extends DashboardPageController
         }
 
         $post = $this->request->request->all();
-        $entity = !empty($post['id']) ? $this->em->find($this->entityClass(), (string) $post['id']) : null;
-        $names = array_filter(array_map('trim', (array) ($post['name'] ?? [])), 'strlen');
-        $default = LocaleContext::default();
-
-        if (!$this->token->validate('submit')) {
-            $this->error->add($this->token->getErrorMessage());
-        }
-        if (!$names) {
-            $this->error->add(t('Please enter a name in at least one language.'));
-        }
-        if (!$entity && !isset($names[$default])) {
-            $this->error->add(t('Please enter a name for the default language (%s).', $default));
-        }
-        if (!empty($post['id']) && !$entity) {
-            $this->error->add(t('Unable to find the specified %s.', $this->label()));
-        }
-
-        $handle = $entity ? $entity->getHandle() : $this->app->make('helper/text')->handle($names[$default] ?? (string) reset($names));
-        if (!$entity && $handle !== '' && $this->em->getRepository($this->entityClass())->findOneBy(['handle' => $handle])) {
-            $this->error->add(t('A %s with this name already exists.', $this->label()));
-        }
-
-        $parent = $this->resolveParent($post, $entity);
-
-        if (!$this->error->has()) {
-            $class = $this->entityClass();
-            $entity ??= (new $class())->setHandle($handle);
-            $this->applyExtra($entity, $parent);
-            foreach (LocaleContext::siteLocales() as $locale) {
-                if (isset($names[$locale])) {
-                    $entity->setName($locale, $names[$locale]);
-                }
-            }
-            $this->em->persist($entity);
-            $this->em->flush();
-
+        $entity = null;
+        if ($saved = $this->persist($post, $entity)) {
             $this->flash('success', t('%s saved.', $this->label()));
 
-            return $this->buildRedirect($this->basePath() . '/details/' . $entity->getID())->send();
+            return $this->buildRedirect($this->basePath() . '/details/' . $saved->getID())->send();
         }
 
         $this->set('formContent', $post);
         $this->set('entity', $entity);
         $this->prepareForm($entity ?: null);
+    }
+
+    /** AJAX create (used by the event form); same rules as save(). */
+    public function create()
+    {
+        $rf = $this->app->make(ResponseFactoryInterface::class);
+        if ($this->request->isPost() && ($entity = $this->persist($this->request->request->all()))) {
+            return $rf->json(['id' => $entity->getID(), 'label' => $this->optionLabel($entity)]);
+        }
+
+        return $rf->json($this->error->jsonSerialize());
     }
 
     public function delete($id = false)
