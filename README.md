@@ -1,15 +1,35 @@
 # Event Manager Kit
 
-[![Code Standards](https://github.com/limegreentangerine/event_manager_kit/actions/workflows/CodeStandards.yml/badge.svg)](https://github.com/limegreentangerine/event_manager_kit/actions/workflows/CodeStandards.yml)
-[![System Tests](https://github.com/limegreentangerine/event_manager_kit/actions/workflows/SystemTests.yml/badge.svg)](https://github.com/limegreentangerine/event_manager_kit/actions/workflows/SystemTests.yml)
+[![Code Standards](https://github.com/limegreentangerine/EventManagerKit/actions/workflows/CodeStandards.yml/badge.svg)](https://github.com/limegreentangerine/EventManagerKit/actions/workflows/CodeStandards.yml)
+[![System Tests](https://github.com/limegreentangerine/EventManagerKit/actions/workflows/SystemTests.yml/badge.svg)](https://github.com/limegreentangerine/EventManagerKit/actions/workflows/SystemTests.yml)
 
 Multilingual event manager for Concrete CMS 9: admins create events in the
 dashboard and they appear on the site. Package handle `event_manager_kit`,
 namespace `EventManagerKit`.
 
-Status: the data model, dashboard (events, types, tags, locations) and CSV
-import are written. Frontend blocks are still to come; see `CHANGELOG.md`.
-The dashboard and import have not yet been run in a Concrete site.
+## Features
+
+- **Dashboard** under `/dashboard/event_manager/*`: events, types, tags,
+  locations and CSV import, each with search.
+- **Multilingual**: names and text are stored per locale and fall back to the
+  same language, the default locale, then any translation.
+- **Repeating events**: daily, weekly or monthly rules with skipped dates,
+  expanded into occurrences.
+- **Locations**: address, coordinates, online URL, and an optional Mapbox map
+  when the `mapbox` package is installed.
+- **Blocks**: `event_calendar` and `em_event_list`. They load events by
+  `fetch` from `GET /ajax/events-manager/events`, so pages stay cacheable.
+  Exclude `/ajax/events-manager/*` from CDN caching.
+- **Event page** at `/events/{slug}` (slugs are per language; drafts 404 except
+  for admins) with schema.org markup, canonical/hreflang/Open Graph tags and
+  Add to calendar links.
+- **iCalendar**: `GET /ajax/events-manager/ics/{slug}` and
+  `GET /ajax/events-manager/feed.ics`.
+- **Sitemap**: published events are added to Concrete's `sitemap.xml`.
+- **CSV import**: validated up front and written in one transaction;
+  re-uploads skip events already imported.
+
+Status: not yet released (see `CHANGELOG.md`).
 
 ## Requirements
 
@@ -20,8 +40,11 @@ The dashboard and import have not yet been run in a Concrete site.
 - Access to the private Composer registry at
   `https://packages.limegreentangerine.net` to install private dependencies.
 
-The template currently requires `limegreentangerine/class_kit` and uses
-Concrete CMS 9.2 and PHPUnit 11 for development.
+The package requires `limegreentangerine/class_kit` and uses Concrete CMS 9.2
+and PHPUnit 11 for development. `mapbox` (MapboxKit) is optional.
+
+After changing entity columns, bump `$pkgVersion` in `controller.php`, then
+upgrade the package in the dashboard and clear the cache.
 
 ## Install
 
@@ -51,6 +74,7 @@ Run these commands from the repository root:
 | `composer format`                                   | Format PHP and JavaScript files.                                                                                               |
 | `composer format:php:check` / `composer format:php` | Check or format PHP files with PHP-CS-Fixer.                                                                                   |
 | `composer format:js:check` / `composer format:js`   | Check or format files with Prettier.                                                                                           |
+| `npm run build`                                     | Compile `src-ts/events.ts` to `js/events.js` (commit both).                                                                    |
 
 PHPStan analyzes `src` and `tests` at level 4, with bootstrap configuration
 from `phpstan-bootstrap.php`. If you add package directories, update the
