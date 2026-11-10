@@ -6,6 +6,13 @@ Notable changes to this project are documented here.
 
 ### Added
 
+- Locations have an address, latitude/longitude and an optional online event
+  URL (schema version 1.0.6; upgrade the package to add the columns). Leaving
+  the coordinates blank looks them up from the address when the optional
+  `mapbox` package (MapboxKit) is installed and has an API key. The event page
+  shows the address, a Mapbox map (MapboxKit's `<mapbox-component>`) or, without
+  Mapbox, a "View on map" link, a "Join online" link, and schema.org `Place`
+  with `GeoCoordinates` / `VirtualLocation` and `eventAttendanceMode`.
 - Calendar subscriptions: `GET /ajax/events-manager/ics/{slug}` (one event) and
   `GET /ajax/events-manager/feed.ics` (upcoming published events) return
   iCalendar files, and the event page has Add to calendar links (iCal,

@@ -12,6 +12,7 @@ if (in_array($controller->getTask(), ['add', 'details', 'save'])) {
         'locales' => $locales,
         'defaultLocale' => $defaultLocale,
         'parents' => $parents,
+        'place' => $place ?? null,
     ], 'event_manager_kit');
 } else {
     View::element('dashboard/named/all', [

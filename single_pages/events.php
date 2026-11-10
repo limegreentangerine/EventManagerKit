@@ -3,7 +3,7 @@
 
 use Concrete\Core\Support\Facade\Url;
 use EventManagerKit\Time\SiteTimezone;
-use EventManagerKit\Frontend\{EventDisplay, IcsEndpoint};
+use EventManagerKit\Frontend\{EventDisplay, IcsEndpoint, LocationMap};
 
 $zone = SiteTimezone::current();
 
@@ -26,8 +26,24 @@ if ($event->getSlug($locale)) {
 if ($description) {
     $schema['description'] = trim(strip_tags($description));
 }
-if ($event->getLocation()) {
-    $schema['location'] = ['@type' => 'Place', 'name' => $event->getLocation()->getFullName($locale)];
+$place = $event->getLocation();
+if ($place) {
+    $locations = [];
+    if ($place->getAddress() || $place->hasCoordinates() || !$place->getOnlineUrl()) {
+        $physical = ['@type' => 'Place', 'name' => $place->getFullName($locale)];
+        if ($place->getAddress()) {
+            $physical['address'] = $place->getAddress();
+        }
+        if ($place->hasCoordinates()) {
+            $physical['geo'] = ['@type' => 'GeoCoordinates', 'latitude' => $place->getLatitude(), 'longitude' => $place->getLongitude()];
+        }
+        $locations[] = $physical;
+    }
+    if ($place->getOnlineUrl()) {
+        $locations[] = ['@type' => 'VirtualLocation', 'url' => $place->getOnlineUrl()];
+    }
+    $schema['location'] = count($locations) === 1 ? $locations[0] : $locations;
+    $schema['eventAttendanceMode'] = 'https://schema.org/' . (count($locations) > 1 ? 'MixedEventAttendanceMode' : ($locations[0]['@type'] === 'VirtualLocation' ? 'OnlineEventAttendanceMode' : 'OfflineEventAttendanceMode'));
 }
 if (count($event->getTags())) {
     $schema['keywords'] = implode(', ', array_map(fn($tag) => $tag->getName($locale), $event->getTags()->toArray()));
@@ -65,7 +81,14 @@ if ($image) {
 
         <?php if ($event->getLocation()) { ?>
             <dt><?php echo t('Where'); ?></dt>
-            <dd><?php echo h($event->getLocation()->getFullName($locale)); ?></dd>
+            <dd>
+                <?php echo h($place->getFullName($locale)); ?>
+                <?php if ($place->getAddress()) { ?><br><span class="em-event-detail__address"><?php echo h($place->getAddress()); ?></span><?php } ?>
+                <?php if ($place->getOnlineUrl()) { ?><br><a href="<?php echo h($place->getOnlineUrl()); ?>" rel="noopener"><?php echo t('Join online'); ?></a><?php } ?>
+                <?php if (empty($mapboxConfig) && ($mapLink = LocationMap::externalUrl($place))) { ?>
+                    <br><a href="<?php echo h($mapLink); ?>" target="_blank" rel="noopener"><?php echo t('View on map'); ?></a>
+                <?php } ?>
+            </dd>
         <?php } ?>
 
         <?php if ($event->getType()) { ?>
@@ -85,6 +108,10 @@ if ($image) {
 
     <?php if ($description) { ?>
         <div class="em-event-detail__description"><?php echo nl2br(h($description)); ?></div>
+    <?php } ?>
+
+    <?php if (!empty($mapboxConfig)) { ?>
+        <mapbox-component class="em-event-detail__map" style="display:block;height:320px" data-config="<?php echo h((string) json_encode($mapboxConfig)); ?>"></mapbox-component>
     <?php } ?>
 
     <?php if ($event->isPublished() && $event->getSlug($locale)) {

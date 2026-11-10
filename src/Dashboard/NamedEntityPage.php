@@ -41,6 +41,9 @@ abstract class NamedEntityPage extends DashboardPageController
         return null;
     }
 
+    /** Hook: validate extra posted fields; add problems to $this->error. */
+    protected function validateExtra(array $post): void {}
+
     /** Hook: copy extra fields onto the entity before saving. */
     protected function applyExtra($entity, ?Location $parent): void {}
 
@@ -79,6 +82,7 @@ abstract class NamedEntityPage extends DashboardPageController
         }
 
         $parent = $this->resolveParent($post, $entity);
+        $this->validateExtra($post);
 
         if (!$this->error->has()) {
             $class = $this->entityClass();

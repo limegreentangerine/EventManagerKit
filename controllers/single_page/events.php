@@ -6,9 +6,10 @@ use Page;
 use Concrete\Core\Permission\Checker;
 use Concrete\Core\Support\Facade\Url;
 use Doctrine\ORM\EntityManagerInterface;
+use Concrete\Core\Package\PackageService;
 use EventManagerKit\Translation\LocaleContext;
 use Concrete\Core\Page\Controller\PageController;
-use EventManagerKit\Frontend\{EventFinder, IcsEndpoint, SeoTags};
+use EventManagerKit\Frontend\{EventFinder, IcsEndpoint, LocationMap, SeoTags};
 
 /**
  * Public event page: /events/{slug}. A single page, so it renders in the
@@ -17,6 +18,28 @@ use EventManagerKit\Frontend\{EventFinder, IcsEndpoint, SeoTags};
  */
 class Events extends PageController
 {
+    /**
+     * Optional integration: with the `mapbox` package installed and a located
+     * venue, load Mapbox GL and MapboxKit's <mapbox-component> and hand the
+     * view its config. Otherwise the view falls back to an external map link.
+     */
+    private function addMap($event): void
+    {
+        $config = $event->getLocation() ? LocationMap::config($event->getLocation()) : null;
+        $package = $config ? $this->app->make(PackageService::class)->getByHandle('mapbox') : null;
+        if (!$package || !class_exists(\MapboxKit\Config\MapboxEnv::class)) {
+            return;
+        }
+
+        $html = $this->app->make('helper/html');
+        $version = \MapboxKit\Config\MapboxEnv::glVersionOrDefault();
+        $base = $package->getRelativePath() . '/blocks/mapbox/';
+        $this->addHeaderItem($html->css('//api.mapbox.com/mapbox-gl-js/v' . $version . '/mapbox-gl.css'));
+        $this->addHeaderItem($html->css($base . 'view.css'));
+        $this->addFooterItem($html->javascript('//api.mapbox.com/mapbox-gl-js/v' . $version . '/mapbox-gl.js'));
+        $this->addFooterItem($html->javascript($base . 'view.js'));
+        $this->set('mapboxConfig', $config);
+    }
     public function view($slug = null)
     {
         $slug = is_string($slug) ? $slug : '';
@@ -53,6 +76,7 @@ class Events extends PageController
                 $file ? $file->getURL() : null,
             ));
         }
+        $this->addMap($event);
         $this->set('event', $event);
         $this->set('locale', $locale);
         $this->set('isDraft', !$event->isPublished());

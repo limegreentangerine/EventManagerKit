@@ -35,6 +35,31 @@ if ($entity) {
         </fieldset>
     <?php } ?>
 
+    <?php if (!empty($place)) { ?>
+        <fieldset>
+            <legend><?php echo t('Place'); ?></legend>
+            <div class="form-group mb-3">
+                <?php echo $form->label('address', t('Address')); ?>
+                <?php echo $form->text('address', $place['address'], ['maxlength' => 500]); ?>
+            </div>
+            <div class="row">
+                <div class="col-md-6 form-group mb-3">
+                    <?php echo $form->label('latitude', t('Latitude')); ?>
+                    <?php echo $form->text('latitude', $place['latitude'], ['placeholder' => '51.5072']); ?>
+                </div>
+                <div class="col-md-6 form-group mb-3">
+                    <?php echo $form->label('longitude', t('Longitude')); ?>
+                    <?php echo $form->text('longitude', $place['longitude'], ['placeholder' => '-0.1276']); ?>
+                </div>
+            </div>
+            <p class="text-muted small"><?php echo t('Leave the coordinates blank to look them up from the address (needs the Mapbox package and API key). Clear them and save to look up again.'); ?></p>
+            <div class="form-group mb-3">
+                <?php echo $form->label('onlineUrl', t('Online event URL')); ?>
+                <?php echo $form->text('onlineUrl', $place['onlineUrl'], ['placeholder' => 'https://']); ?>
+            </div>
+        </fieldset>
+    <?php } ?>
+
     <div class="ccm-dashboard-form-actions-wrapper">
         <div class="ccm-dashboard-form-actions">
             <a href="<?php echo h(URL::to($basePath)); ?>" class="btn btn-secondary float-start"><?php echo t('Cancel'); ?></a>
