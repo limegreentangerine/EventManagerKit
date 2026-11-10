@@ -71,6 +71,7 @@ final class CsvImporter
             return $values;
         };
 
+        $startHasTime = $endHasTime = false;
         $start = $this->parseDate($cell($columns['start']), $startHasTime);
         $end = $this->parseDate($cell($columns['end']), $endHasTime);
         if (!$start) {
@@ -142,7 +143,7 @@ final class CsvImporter
         return $tags;
     }
 
-    private function parseDate(string $value, ?bool &$hasTime = null): ?DateTimeImmutable
+    private function parseDate(string $value, bool &$hasTime = false): ?DateTimeImmutable
     {
         foreach (self::FORMATS as $format) {
             $date = DateTimeImmutable::createFromFormat('!' . $format, $value);

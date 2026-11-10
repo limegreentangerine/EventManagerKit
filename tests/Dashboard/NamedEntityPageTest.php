@@ -9,9 +9,10 @@ use ReflectionProperty;
 use PHPUnit\Framework\TestCase;
 use EventManagerKit\Entity\EventType;
 use Doctrine\ORM\EntityManagerInterface;
+use Concrete\Core\Application\Application;
 use Doctrine\Persistence\ObjectRepository;
 use Concrete\Core\Error\ErrorList\ErrorList;
-use Symfony\Component\HttpFoundation\Request;
+use Concrete\Core\Http\Request as CmsRequest;
 use EventManagerKit\Dashboard\NamedEntityPage;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -61,15 +62,6 @@ final class NamedEntityPageTest extends TestCase
                 return trim(preg_replace('/[^a-z0-9]+/', '_', strtolower($s)), '_');
             }
         };
-        $app = new class($text) {
-            public function __construct(private object $text) {}
-
-            public function make(string $abstract): mixed
-            {
-                return $this->text;
-            }
-        };
-
         // Only json() is used; a bare stub keeps the test free of the CMS boot.
         $json = new class {
             public function json(mixed $data): JsonResponse
@@ -78,9 +70,16 @@ final class NamedEntityPageTest extends TestCase
             }
         };
 
+        $app = $this->createMock(Application::class);
+        $app->method('make')->willReturnCallback(fn(string $abstract) => $abstract === ResponseFactoryInterface::class ? $json : $text);
+
+        // isPost() is static and reads the singleton request.
+        $request = CmsRequest::create('/', $isPost ? 'POST' : 'GET', $post);
+        CmsRequest::setInstance($request);
+
         // Instantiate without the CMS-bound constructor, then inject collaborators.
         $page = (new ReflectionClass(TestableTypePage::class))->newInstanceWithoutConstructor();
-        $page->wire($em, $token, new ErrorList(), $app, $json, Request::create('/', $isPost ? 'POST' : 'GET', $post));
+        $page->wire($em, $token, new ErrorList(), $app, $request);
 
         return $page;
     }
@@ -177,7 +176,7 @@ class TestableTypePage extends NamedEntityPage
 
     protected function searchControllerClass(): string
     {
-        return '';
+        return \stdClass::class;
     }
 
     protected function label(): string
@@ -190,32 +189,13 @@ class TestableTypePage extends NamedEntityPage
         return 'Event Types';
     }
 
-    public function wire($em, $token, $error, $app, object $rf, Request $request): void
+    public function wire($em, $token, $error, Application $app, CmsRequest $request): void
     {
         $this->em = $em;
         $this->token = $token;
         $this->error = $error;
-        $this->app = new class($app, $rf) {
-            public function __construct(private object $inner, private object $rf) {}
-
-            public function make(string $abstract): mixed
-            {
-                return $abstract === ResponseFactoryInterface::class ? $this->rf : $this->inner->make($abstract);
-            }
-        };
-        $this->request = new class($request) {
-            public object $request;
-
-            public function __construct(private Request $r)
-            {
-                $this->request = $r->request;
-            }
-
-            public function isPost(): bool
-            {
-                return $this->r->isMethod('POST');
-            }
-        };
+        $this->app = $app;
+        $this->request = $request;
     }
 
     public function persist(array $post, &$entity = null)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EventManagerKit\Frontend;
 
+use Concrete\Core\View\View;
 use Concrete\Core\Http\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use EventManagerKit\Translation\LocaleContext;
@@ -47,7 +48,7 @@ final class EventsEndpoint
     private function render(string $element, array $data): string
     {
         ob_start();
-        \View::element($element, $data, 'event_manager_kit');
+        View::element($element, $data, 'event_manager_kit');
 
         return (string) ob_get_clean();
     }

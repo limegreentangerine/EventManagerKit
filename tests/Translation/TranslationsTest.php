@@ -46,6 +46,6 @@ final class TranslationsTest extends TestCase
 
     public function testEmptyReturnsNull(): void
     {
-        $this->assertNull(Translations::pick([], 'en_GB'));
+        $this->assertNull(Translations::pick(array_filter([$this->row('cy_GB')], fn() => false), 'en_GB'));
     }
 }
