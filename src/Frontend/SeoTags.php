@@ -57,21 +57,25 @@ final class SeoTags
     }
 
     /**
+     * Adds one <url> per entry (with xhtml:link hreflang alternates) to a
+     * sitemap document.
+     *
      * @param list<array{loc:string,alternates:array<string,string>}> $entries
      */
-    public static function sitemap(array $entries): string
+    public static function addToSitemap(\SimpleXMLElement $document, array $entries, string $changeFrequency, string $priority): void
     {
-        $e = fn(string $v) => htmlspecialchars($v, ENT_XML1 | ENT_QUOTES, 'UTF-8');
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
-            . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
+        $xhtml = 'http://www.w3.org/1999/xhtml';
         foreach ($entries as $entry) {
-            $xml .= '<url><loc>' . $e($entry['loc']) . '</loc>';
-            foreach ($entry['alternates'] as $lang => $url) {
-                $xml .= '<xhtml:link rel="alternate" hreflang="' . $e($lang) . '" href="' . $e($url) . '"/>';
+            $url = $document->addChild('url');
+            $url->addChild('loc', htmlspecialchars($entry['loc'], ENT_XML1));
+            $url->addChild('changefreq', $changeFrequency);
+            $url->addChild('priority', $priority);
+            foreach ($entry['alternates'] as $lang => $href) {
+                $link = $url->addChild('xhtml:link', null, $xhtml);
+                $link->addAttribute('rel', 'alternate');
+                $link->addAttribute('hreflang', $lang);
+                $link->addAttribute('href', $href);
             }
-            $xml .= "</url>\n";
         }
-
-        return $xml . '</urlset>' . "\n";
     }
 }

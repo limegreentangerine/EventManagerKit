@@ -14,9 +14,9 @@ Notable changes to this project are documented here.
   timezone. The ICS, web calendar links and schema.org `startDate`/`endDate`
   (with UTC offset) use it, so daylight saving is handled.
 - SEO on the event page: canonical URL, `hreflang` alternates for each
-  language with a slug, and Open Graph/Twitter tags. `GET /events-sitemap.xml`
-  lists published events with their alternates; add it to `robots.txt`
-  (Concrete's own sitemap has no hook for extra URLs).
+  language with a slug, and Open Graph/Twitter tags. Published events are added
+  to Concrete's `sitemap.xml` (via `on_sitemap_xml_ready`), once per language
+  with hreflang alternates.
 - The calendar and list blocks load their events by `fetch` from
   `GET /ajax/events-manager/events` (HTML fragment in JSON, `Cache-Control:
 no-store`), so pages holding them can be cached without showing stale

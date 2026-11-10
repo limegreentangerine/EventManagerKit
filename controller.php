@@ -4,11 +4,12 @@ namespace Concrete\Package\EventManagerKit;
 
 use Concrete\Core\Entity\Package;
 use ClassKit\Package\PackageController;
+use Concrete\Core\Support\Facade\Events;
 use Concrete\Core\Asset\{Asset, AssetList};
 use Concrete\Core\Database\Connection\Connection;
 use ClassKit\Package\Traits\{BlockTrait, PageTrait};
 use Concrete\Core\Page\{Page, Single as SinglePage};
-use EventManagerKit\Frontend\{EventsEndpoint, IcsEndpoint, SitemapEndpoint};
+use EventManagerKit\Frontend\{EventsEndpoint, IcsEndpoint, SitemapListener};
 
 class Controller extends PackageController
 {
@@ -162,8 +163,10 @@ class Controller extends PackageController
         $router->register(EventsEndpoint::PATH, EventsEndpoint::class . '::events', 'event_manager_kit.events', [], [], '', [], ['GET']);
         $router->register(IcsEndpoint::EVENT_PATH, IcsEndpoint::class . '::event', 'event_manager_kit.ics', ['slug' => '[^/]+'], [], '', [], ['GET']);
         $router->register(IcsEndpoint::FEED_PATH, IcsEndpoint::class . '::feed', 'event_manager_kit.feed', [], [], '', [], ['GET']);
-        $router->register(SitemapEndpoint::PATH, SitemapEndpoint::class . '::sitemap', 'event_manager_kit.sitemap', [], [], '', [], ['GET']);
     }
 
-    public function registerEvents(): void {}
+    public function registerEvents(): void
+    {
+        Events::addListener('on_sitemap_xml_ready', SitemapListener::addEvents(...));
+    }
 }
