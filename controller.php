@@ -5,10 +5,10 @@ namespace Concrete\Package\EventManagerKit;
 use Concrete\Core\Entity\Package;
 use ClassKit\Package\PackageController;
 use Concrete\Core\Asset\{Asset, AssetList};
-use EventManagerKit\Frontend\EventsEndpoint;
 use Concrete\Core\Database\Connection\Connection;
 use ClassKit\Package\Traits\{BlockTrait, PageTrait};
 use Concrete\Core\Page\{Page, Single as SinglePage};
+use EventManagerKit\Frontend\{EventsEndpoint, IcsEndpoint};
 
 class Controller extends PackageController
 {
@@ -158,7 +158,10 @@ class Controller extends PackageController
     public function registerRoutes(): void
     {
         // Public JSON endpoint the blocks fetch events from. Exclude it from CDN caching.
-        $this->app->make('router')->register(EventsEndpoint::PATH, EventsEndpoint::class . '::events', 'event_manager_kit.events', [], [], '', [], ['GET']);
+        $router = $this->app->make('router');
+        $router->register(EventsEndpoint::PATH, EventsEndpoint::class . '::events', 'event_manager_kit.events', [], [], '', [], ['GET']);
+        $router->register(IcsEndpoint::EVENT_PATH, IcsEndpoint::class . '::event', 'event_manager_kit.ics', ['slug' => '[^/]+'], [], '', [], ['GET']);
+        $router->register(IcsEndpoint::FEED_PATH, IcsEndpoint::class . '::feed', 'event_manager_kit.feed', [], [], '', [], ['GET']);
     }
 
     public function registerEvents(): void {}

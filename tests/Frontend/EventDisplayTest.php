@@ -37,4 +37,15 @@ final class EventDisplayTest extends TestCase
         $this->assertStringContainsString('Tach', EventDisplay::dateRange($this->event('2026-11-20 10:00', '2026-11-20 11:00'), 'cy_GB'));
         $this->assertSame('Tachwedd 2026', EventDisplay::monthTitle(new DateTimeImmutable('2026-11-01'), 'cy_GB'));
     }
+
+    public function testCalendarLinksCarryTheEventDetails(): void
+    {
+        $event = $this->event('2026-11-20 10:00', '2026-11-20 12:30')->setContent('en_GB', 'Open day');
+        $links = EventDisplay::calendarLinks($event, 'en_GB', 'https://example.com/events/open-day');
+
+        $this->assertStringContainsString('text=Open%20day', $links['google']);
+        $this->assertStringContainsString('dates=20261120T100000%2F20261120T123000', $links['google']);
+        $this->assertStringContainsString('subject=Open%20day', $links['outlook']);
+        $this->assertStringContainsString('allday=false', $links['outlook']);
+    }
 }

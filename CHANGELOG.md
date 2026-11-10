@@ -6,6 +6,11 @@ Notable changes to this project are documented here.
 
 ### Added
 
+- Calendar subscriptions: `GET /ajax/events-manager/ics/{slug}` (one event) and
+  `GET /ajax/events-manager/feed.ics` (upcoming published events) return
+  iCalendar files, and the event page has Add to calendar links (iCal,
+  Google, Outlook). Times are floating local times until timezone support
+  lands.
 - The calendar and list blocks load their events by `fetch` from
   `GET /ajax/events-manager/events` (HTML fragment in JSON, `Cache-Control:
 no-store`), so pages holding them can be cached without showing stale

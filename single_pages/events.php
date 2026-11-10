@@ -2,7 +2,7 @@
 /** @var \EventManagerKit\Entity\Event $event @var string $locale @var bool $isDraft */
 
 use Concrete\Core\Support\Facade\Url;
-use EventManagerKit\Frontend\EventDisplay;
+use EventManagerKit\Frontend\{EventDisplay, IcsEndpoint};
 
 $description = $event->getContent($locale)?->getDescription();
 
@@ -82,6 +82,16 @@ if ($image) {
 
     <?php if ($description) { ?>
         <div class="em-event-detail__description"><?php echo nl2br(h($description)); ?></div>
+    <?php } ?>
+
+    <?php if ($event->isPublished() && $event->getSlug($locale)) {
+        $calendarLinks = EventDisplay::calendarLinks($event, $locale, IcsEndpoint::eventUrl($event, $locale)); ?>
+        <p class="em-event-detail__calendar">
+            <?php echo t('Add to calendar'); ?>:
+            <a href="<?php echo h((string) Url::to('/ajax/events-manager/ics', $event->getSlug($locale))); ?>"><?php echo t('iCal / Apple'); ?></a> |
+            <a href="<?php echo h($calendarLinks['google']); ?>" target="_blank" rel="noopener"><?php echo t('Google'); ?></a> |
+            <a href="<?php echo h($calendarLinks['outlook']); ?>" target="_blank" rel="noopener"><?php echo t('Outlook'); ?></a>
+        </p>
     <?php } ?>
 
     <?php if ($linkHref) { ?>
