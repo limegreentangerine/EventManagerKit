@@ -68,6 +68,39 @@ class Event extends UpdatedGuidEntity
      */
     protected Collection $tags;
 
+    /**
+     * Concrete file IDs (file manager) for the event's media.
+     *
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected ?int $imageID = null;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected ?int $videoID = null;
+
+    /**
+     * Poster image shown before the video plays.
+     *
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected ?int $videoPosterID = null;
+
+    /**
+     * One of LINK_TYPES; the value is a page ID, URL, email address or phone number to match.
+     *
+     * @ORM\Column(type="string", length=10, nullable=true)
+     */
+    protected ?string $linkType = null;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    protected ?string $linkValue = null;
+
+    public const LINK_TYPES = ['page', 'url', 'email', 'tel'];
+
     public function __construct()
     {
         parent::__construct();
@@ -274,5 +307,88 @@ class Event extends UpdatedGuidEntity
         $this->tags->removeElement($tag);
 
         return $this;
+    }
+
+    public function getImageID(): ?int
+    {
+        return $this->imageID;
+    }
+
+    public function getVideoID(): ?int
+    {
+        return $this->videoID;
+    }
+
+    public function getVideoPosterID(): ?int
+    {
+        return $this->videoPosterID;
+    }
+
+    /**
+     * 0/null clears. The poster only makes sense with a video, so it is dropped without one.
+     */
+    public function setMedia(?int $imageID, ?int $videoID, ?int $videoPosterID): static
+    {
+        $this->imageID = $imageID ?: null;
+        $this->videoID = $videoID ?: null;
+        $this->videoPosterID = $this->videoID ? ($videoPosterID ?: null) : null;
+
+        return $this;
+    }
+
+    public function getLinkType(): ?string
+    {
+        return $this->linkType;
+    }
+
+    public function getLinkValue(): ?string
+    {
+        return $this->linkValue;
+    }
+
+    /**
+     * @throws InvalidArgumentException for an unknown type or a value invalid for that type
+     */
+    public function setLink(?string $type, ?string $value): static
+    {
+        $value = trim((string) $value);
+        if (!$type || $value === '') {
+            $this->linkType = $this->linkValue = null;
+
+            return $this;
+        }
+        if (!in_array($type, self::LINK_TYPES, true) || !self::isValidLink($type, $value)) {
+            throw new InvalidArgumentException('Invalid event link.');
+        }
+        $this->linkType = $type;
+        $this->linkValue = $value;
+
+        return $this;
+    }
+
+    public static function isValidLink(string $type, string $value): bool
+    {
+        return match ($type) {
+            'page' => ctype_digit($value) && (int) $value > 0,
+            'url' => (bool) preg_match('#^https?://[^\s/$.?\#][^\s]*$#i', $value),
+            'email' => filter_var($value, FILTER_VALIDATE_EMAIL) !== false,
+            'tel' => (bool) preg_match('/^\+?[0-9 ()\-.]{5,30}$/', $value),
+            default => false,
+        };
+    }
+
+    /**
+     * Ready-to-use href, or null when there is no link (or its page is gone).
+     */
+    public function getLinkHref(): ?string
+    {
+        return match ($this->linkType) {
+            'url' => $this->linkValue,
+            'email' => 'mailto:' . $this->linkValue,
+            'tel' => 'tel:' . preg_replace('/[^0-9+]/', '', (string) $this->linkValue),
+            'page' => ($page = \Concrete\Core\Page\Page::getByID((int) $this->linkValue)) && !$page->isError()
+                ? (string) \Concrete\Core\Support\Facade\Url::to($page) : null,
+            default => null,
+        };
     }
 }

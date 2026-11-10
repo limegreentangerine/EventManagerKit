@@ -107,4 +107,29 @@ final class EventTest extends TestCase
         $event->setPublished(false);
         $this->assertSame('Draft', $event->getStatusName());
     }
+
+    public function testPosterIsDroppedWithoutVideo(): void
+    {
+        $event = (new Event())->setMedia(1, 2, 3);
+        $this->assertSame([1, 2, 3], [$event->getImageID(), $event->getVideoID(), $event->getVideoPosterID()]);
+
+        $event->setMedia(1, null, 3);
+        $this->assertNull($event->getVideoPosterID());
+    }
+
+    public function testLinkHrefPerType(): void
+    {
+        $event = new Event();
+        $this->assertNull($event->getLinkHref());
+        $this->assertSame('https://x.test/t', $event->setLink('url', 'https://x.test/t')->getLinkHref());
+        $this->assertSame('mailto:a@b.co', $event->setLink('email', 'a@b.co')->getLinkHref());
+        $this->assertSame('tel:+441234567890', $event->setLink('tel', '+44 1234 567890')->getLinkHref());
+        $this->assertNull($event->setLink(null, '')->getLinkType());
+    }
+
+    public function testInvalidLinkIsRejected(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        (new Event())->setLink('url', 'javascript:alert(1)');
+    }
 }

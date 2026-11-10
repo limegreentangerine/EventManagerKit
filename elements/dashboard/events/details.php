@@ -10,6 +10,12 @@ $selectedLocation = (string) ($p['location'] ?? ($entity && $entity->getLocation
 $selectedType = (string) ($p['type'] ?? ($entity && $entity->getType() ? $entity->getType()->getID() : ''));
 $selectedTags = $formContent ? (array) ($p['tags'] ?? []) : ($entity ? array_map(fn($t) => $t->getID(), $entity->getTags()->toArray()) : []);
 
+$fm = app(\Concrete\Core\Application\Service\FileManager::class);
+$ps = app(\Concrete\Core\Form\Service\Widget\PageSelector::class);
+$fileOf = fn($key, $getter) => ($fid = (int) ($p[$key] ?? ($entity ? $entity->$getter() : 0))) ? \Concrete\Core\File\File::getByID($fid) : null;
+$linkType = (string) ($p['linkType'] ?? ($entity ? $entity->getLinkType() : ''));
+$linkValue = fn($type) => (string) ($p['link' . ucfirst($type)] ?? ($entity && $entity->getLinkType() === $type ? $entity->getLinkValue() : ''));
+
 if ($entity) {
     View::element('dashboard/named/delete', ['token' => $token, 'basePath' => $basePath, 'id' => $id, 'label' => t('Event'), 'view' => $view], 'event_manager_kit');
 }
@@ -93,6 +99,36 @@ if ($entity) {
         </div>
     </fieldset>
 
+    <fieldset class="mt-4">
+        <legend><?php echo t('Media'); ?></legend>
+        <div class="form-group mb-3">
+            <?php echo $form->label('imageID', t('Image')); ?>
+            <?php echo $fm->image('imageID', 'imageID', t('Choose Image'), $fileOf('imageID', 'getImageID')); ?>
+        </div>
+        <div class="form-group mb-3">
+            <?php echo $form->label('videoID', t('Video')); ?>
+            <?php echo $fm->video('videoID', 'videoID', t('Choose Video'), $fileOf('videoID', 'getVideoID')); ?>
+        </div>
+        <div class="form-group mb-3" id="poster-group">
+            <?php echo $form->label('videoPosterID', t('Video poster image')); ?>
+            <?php echo $fm->image('videoPosterID', 'videoPosterID', t('Choose Poster'), $fileOf('videoPosterID', 'getVideoPosterID')); ?>
+            <div class="form-text"><?php echo t('Shown before the video plays. Ignored if there is no video.'); ?></div>
+        </div>
+    </fieldset>
+
+    <fieldset class="mt-4">
+        <legend><?php echo t('Link'); ?></legend>
+        <div class="form-group mb-3">
+            <?php echo $form->label('linkType', t('Link to')); ?>
+            <?php echo $form->select('linkType', ['' => t('(none)'), 'page' => t('A page'), 'url' => t('External URL'), 'email' => t('Email address'), 'tel' => t('Telephone number')], $linkType); ?>
+            <div class="form-text"><?php echo t('For example, where to buy tickets.'); ?></div>
+        </div>
+        <div class="form-group mb-3" data-link="page"><?php echo $ps->selectPage('linkPage', (int) $linkValue('page') ?: false); ?></div>
+        <div class="form-group mb-3" data-link="url"><?php echo $form->text('linkUrl', $linkValue('url'), ['placeholder' => 'https://']); ?></div>
+        <div class="form-group mb-3" data-link="email"><?php echo $form->text('linkEmail', $linkValue('email'), ['type' => 'email']); ?></div>
+        <div class="form-group mb-3" data-link="tel"><?php echo $form->text('linkTel', $linkValue('tel'), ['type' => 'tel']); ?></div>
+    </fieldset>
+
     <div class="ccm-dashboard-form-actions-wrapper">
         <div class="ccm-dashboard-form-actions">
             <a href="<?php echo h(URL::to($basePath)); ?>" class="btn btn-secondary float-start"><?php echo t('Cancel'); ?></a>
@@ -112,6 +148,12 @@ $(function () {
             this.value = type === 'date' ? v.substring(0, 10) : (v ? v.substring(0, 10) + 'T00:00' : '');
         });
     });
+
+    // Show only the input for the chosen link type.
+    $('#linkType').on('change', function () {
+        var t = this.value;
+        $('[data-link]').each(function () { $(this).toggle($(this).data('link') === t); });
+    }).trigger('change');
 
     // "+ New": show the existing add form for a location/type/tag in a dialog,
     // create it over AJAX and select it here without leaving the event.

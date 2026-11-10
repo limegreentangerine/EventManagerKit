@@ -175,6 +175,16 @@ class Events extends DashboardPageController
             $this->error->add(t('The end date must be after the start date.'));
         }
 
+        $linkType = (string) ($post['linkType'] ?? '');
+        $linkValue = $linkType ? trim((string) ($post['link' . ucfirst($linkType)] ?? '')) : '';
+        if ($linkType && !in_array($linkType, Event::LINK_TYPES, true)) {
+            $this->error->add(t('Unknown link type.'));
+        } elseif ($linkType && $linkValue === '') {
+            $this->error->add(t('Please enter the link, or choose "(none)".'));
+        } elseif ($linkType && !Event::isValidLink($linkType, $linkValue)) {
+            $this->error->add(t('The link is not a valid %s.', ['page' => t('page'), 'url' => t('URL (starting http:// or https://)'), 'email' => t('email address'), 'tel' => t('telephone number')][$linkType]));
+        }
+
         $location = $this->lookup(Location::class, $post['location'] ?? '', t('location'));
         $type = $this->lookup(EventType::class, $post['type'] ?? '', t('event type'));
         $tags = [];
@@ -186,7 +196,9 @@ class Events extends DashboardPageController
 
         if (!$this->error->has()) {
             $event ??= new Event();
-            $event->setDates($start, $end)->setAllDay($allDay)->setPublished(!empty($post['published']))->setLocation($location)->setType($type);
+            $event->setDates($start, $end)->setAllDay($allDay)->setPublished(!empty($post['published']))->setLocation($location)->setType($type)
+                ->setMedia((int) ($post['imageID'] ?? 0), (int) ($post['videoID'] ?? 0), (int) ($post['videoPosterID'] ?? 0))
+                ->setLink($linkType ?: null, $linkValue);
 
             $descriptions = (array) ($post['description'] ?? []);
             foreach (LocaleContext::siteLocales() as $locale) {

@@ -1,10 +1,47 @@
 <?php defined('C5_EXECUTE') or die('Access Denied.');
 /** @var \EventManagerKit\Entity\Event $event @var string $locale @var bool $isDraft */
 
+use Concrete\Core\Support\Facade\Url;
 use EventManagerKit\Frontend\EventDisplay;
 
 $description = $event->getContent($locale)?->getDescription();
+
+// schema.org Event; all-day events use date-only values.
+$dateFormat = $event->isAllDay() ? 'Y-m-d' : DATE_ATOM;
+$schema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Event',
+    'name' => $event->getName($locale),
+    'startDate' => $event->getStartDate()->format($dateFormat),
+    'endDate' => $event->getEndDate()->format($dateFormat),
+    'eventStatus' => 'https://schema.org/EventScheduled',
+    'inLanguage' => $locale,
+];
+if ($event->getSlug($locale)) {
+    $schema['url'] = (string) Url::to('/events', $event->getSlug($locale));
+}
+if ($description) {
+    $schema['description'] = trim(strip_tags($description));
+}
+if ($event->getLocation()) {
+    $schema['location'] = ['@type' => 'Place', 'name' => $event->getLocation()->getFullName($locale)];
+}
+if (count($event->getTags())) {
+    $schema['keywords'] = implode(', ', array_map(fn($tag) => $tag->getName($locale), $event->getTags()->toArray()));
+}
+
+$file = fn(?int $id) => $id ? \Concrete\Core\File\File::getByID($id) : null;
+$image = $file($event->getImageID());
+$video = $file($event->getVideoID());
+$poster = $file($event->getVideoPosterID());
+$linkHref = $event->getLinkHref();
+if ($image) {
+    $schema['image'] = $image->getURL();
+}
 ?>
+<?php if (!$isDraft) { ?>
+    <script type="application/ld+json"><?php echo json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP); ?></script>
+<?php } ?>
 
 <article class="em-event-detail">
     <?php if ($isDraft) { ?>
@@ -12,6 +49,12 @@ $description = $event->getContent($locale)?->getDescription();
     <?php } ?>
 
     <h1 class="em-event-detail__name"><?php echo h($event->getName($locale)); ?></h1>
+
+    <?php if ($video) { ?>
+        <video class="em-event-detail__video" controls preload="metadata"<?php echo ($poster || $image) ? ' poster="' . h(($poster ?: $image)->getURL()) . '"' : ''; ?> src="<?php echo h($video->getURL()); ?>"></video>
+    <?php } elseif ($image) { ?>
+        <img class="em-event-detail__image" src="<?php echo h($image->getURL()); ?>" alt="<?php echo h($event->getName($locale)); ?>">
+    <?php } ?>
 
     <dl class="em-event-detail__facts">
         <dt><?php echo t('When'); ?></dt>
@@ -39,5 +82,9 @@ $description = $event->getContent($locale)?->getDescription();
 
     <?php if ($description) { ?>
         <div class="em-event-detail__description"><?php echo nl2br(h($description)); ?></div>
+    <?php } ?>
+
+    <?php if ($linkHref) { ?>
+        <p class="em-event-detail__link"><a class="btn" href="<?php echo h($linkHref); ?>"<?php echo $event->getLinkType() === 'url' ? ' rel="noopener"' : ''; ?>><?php echo $event->getLinkType() === 'email' ? t('Email us') : ($event->getLinkType() === 'tel' ? t('Call us') : t('More information / tickets')); ?></a></p>
     <?php } ?>
 </article>
