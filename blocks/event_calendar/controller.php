@@ -5,9 +5,9 @@ namespace Concrete\Package\EventManagerKit\Block\EventCalendar;
 defined('C5_EXECUTE') or die('Access Denied.');
 
 use Concrete\Core\Support\Facade\Url;
+use Concrete\Core\Block\BlockController;
 use EventManagerKit\Frontend\EventsEndpoint;
 use EventManagerKit\Translation\LocaleContext;
-use Concrete\Core\Block\BlockController;
 
 class Controller extends BlockController
 {

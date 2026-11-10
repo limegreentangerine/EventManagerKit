@@ -4,11 +4,11 @@ namespace Concrete\Package\EventManagerKit;
 
 use Concrete\Core\Entity\Package;
 use ClassKit\Package\PackageController;
-use ClassKit\Package\Traits\{BlockTrait, PageTrait};
-use Concrete\Core\Page\{Page, Single as SinglePage};
-use Concrete\Core\Database\Connection\Connection;
 use Concrete\Core\Asset\{Asset, AssetList};
 use EventManagerKit\Frontend\EventsEndpoint;
+use Concrete\Core\Database\Connection\Connection;
+use ClassKit\Package\Traits\{BlockTrait, PageTrait};
+use Concrete\Core\Page\{Page, Single as SinglePage};
 
 class Controller extends PackageController
 {

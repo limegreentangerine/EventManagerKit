@@ -26,6 +26,11 @@ final class SlugService
      */
     public function __construct(private readonly Closure $takenInDatabase) {}
 
+    private function reserve(string $locale, string $slug): void
+    {
+        $this->reserved[$locale . '|' . $slug] = true;
+    }
+
     public static function forEntityManager(EntityManagerInterface $em): self
     {
         return new self(function (string $locale, string $slug, ?Event $except) use ($em): bool {
@@ -67,10 +72,5 @@ final class SlugService
                 $this->reserve($content->getLocale(), $content->getSlug());
             }
         }
-    }
-
-    private function reserve(string $locale, string $slug): void
-    {
-        $this->reserved[$locale . '|' . $slug] = true;
     }
 }

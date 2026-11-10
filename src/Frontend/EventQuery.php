@@ -15,10 +15,9 @@ use DateTimeImmutable;
  */
 final class EventQuery
 {
+    private const GUID = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
     public const PER_PAGE = 10;
     public const MAX_PAGE = 500;
-
-    private const GUID = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
 
     public function __construct(
         public readonly DateTimeImmutable $month,
@@ -27,6 +26,34 @@ final class EventQuery
         public readonly ?string $tagId = null,
         public readonly int $page = 1,
     ) {}
+
+    private static function month(mixed $value): ?DateTimeImmutable
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+        $date = DateTimeImmutable::createFromFormat('!Y-m', $value);
+        // Reject malformed input and silly years that make date maths meaningless.
+        if (!$date || $date->format('Y-m') !== $value || (int) $date->format('Y') < 2000 || (int) $date->format('Y') > 2100) {
+            return null;
+        }
+
+        return $date;
+    }
+
+    private static function guid(mixed $value): ?string
+    {
+        return is_string($value) && preg_match(self::GUID, $value) ? strtolower($value) : null;
+    }
+
+    private static function page(mixed $value): int
+    {
+        if (!is_string($value) || !ctype_digit($value)) {
+            return 1;
+        }
+
+        return max(1, min(self::MAX_PAGE, (int) $value));
+    }
 
     /**
      * @param array<string,mixed> $input raw $_GET-style array (keys: month, type, location, tag, page)
@@ -68,33 +95,5 @@ final class EventQuery
             'tag' => $this->tagId,
             'page' => ($page ?? 1) > 1 ? (string) $page : null,
         ], fn($v) => $v !== null);
-    }
-
-    private static function month(mixed $value): ?DateTimeImmutable
-    {
-        if (!is_string($value)) {
-            return null;
-        }
-        $date = DateTimeImmutable::createFromFormat('!Y-m', $value);
-        // Reject malformed input and silly years that make date maths meaningless.
-        if (!$date || $date->format('Y-m') !== $value || (int) $date->format('Y') < 2000 || (int) $date->format('Y') > 2100) {
-            return null;
-        }
-
-        return $date;
-    }
-
-    private static function guid(mixed $value): ?string
-    {
-        return is_string($value) && preg_match(self::GUID, $value) ? strtolower($value) : null;
-    }
-
-    private static function page(mixed $value): int
-    {
-        if (!is_string($value) || !ctype_digit($value)) {
-            return 1;
-        }
-
-        return max(1, min(self::MAX_PAGE, (int) $value));
     }
 }

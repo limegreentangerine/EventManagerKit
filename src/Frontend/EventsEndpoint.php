@@ -23,26 +23,6 @@ final class EventsEndpoint
 {
     public const PATH = '/ajax/events-manager/events';
 
-    public function events(): Response
-    {
-        $request = EndpointRequest::fromArray(
-            app(Request::class)->query->all(),
-            LocaleContext::siteLocales(),
-            LocaleContext::default(),
-        );
-        if (!$request) {
-            return $this->json(['error' => 'Invalid request.'], 400);
-        }
-
-        // Render in the visitor's language: t() and LocaleContext::active() follow this.
-        \Concrete\Core\Localization\Localization::changeLocale($request->locale);
-
-        $finder = new EventFinder(app(EntityManagerInterface::class));
-        $html = $request->view === 'calendar' ? $this->calendar($finder, $request) : $this->list($finder, $request);
-
-        return $this->json(['html' => $html]);
-    }
-
     private function calendar(EventFinder $finder, EndpointRequest $request): string
     {
         $page = $finder->forMonth($request->query);
@@ -79,5 +59,25 @@ final class EventsEndpoint
         $response->headers->set('Cache-Control', 'no-store, private');
 
         return $response;
+    }
+
+    public function events(): Response
+    {
+        $request = EndpointRequest::fromArray(
+            app(Request::class)->query->all(),
+            LocaleContext::siteLocales(),
+            LocaleContext::default(),
+        );
+        if (!$request) {
+            return $this->json(['error' => 'Invalid request.'], 400);
+        }
+
+        // Render in the visitor's language: t() and LocaleContext::active() follow this.
+        \Concrete\Core\Localization\Localization::changeLocale($request->locale);
+
+        $finder = new EventFinder(app(EntityManagerInterface::class));
+        $html = $request->view === 'calendar' ? $this->calendar($finder, $request) : $this->list($finder, $request);
+
+        return $this->json(['html' => $html]);
     }
 }

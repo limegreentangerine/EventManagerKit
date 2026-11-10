@@ -3,10 +3,10 @@
 namespace Concrete\Package\EventManagerKit\Controller\SinglePage;
 
 use Page;
-use Concrete\Core\Support\Facade\Url;
-use EventManagerKit\Frontend\EventFinder;
-use Doctrine\ORM\EntityManagerInterface;
 use Concrete\Core\Permission\Checker;
+use Concrete\Core\Support\Facade\Url;
+use Doctrine\ORM\EntityManagerInterface;
+use EventManagerKit\Frontend\EventFinder;
 use EventManagerKit\Translation\LocaleContext;
 use Concrete\Core\Page\Controller\PageController;
 

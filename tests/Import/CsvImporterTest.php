@@ -22,7 +22,7 @@ final class CsvImporterTest extends TestCase
 
     public function testParsesPerLocaleRow(): void
     {
-        $plan = $this->parse(<<<CSV
+        $plan = $this->parse(<<<'CSV'
         start,end,name_en_GB,name_cy_GB,location_en_GB,location_cy_GB,sub_location_en_GB,type_en_GB,type_cy_GB,tags_en_GB,tags_cy_GB
         15/05/2026 10:00,15/05/2026 12:30,Open day,Diwrnod agored,Main hall,Neuadd,Stage,Workshop,Gweithdy,Year 1;Year 2,Blwyddyn 1;Blwyddyn 2
         CSV);
@@ -45,7 +45,7 @@ final class CsvImporterTest extends TestCase
 
     public function testReportsEveryBadRowWithItsLineNumber(): void
     {
-        $plan = $this->parse(<<<CSV
+        $plan = $this->parse(<<<'CSV'
         start,end,name_en_GB
         2026-05-15 10:00,2026-05-15 11:00,Good
         nonsense,2026-05-15 11:00,Bad date

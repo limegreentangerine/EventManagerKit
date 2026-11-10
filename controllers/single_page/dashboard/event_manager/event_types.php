@@ -2,8 +2,8 @@
 
 namespace Concrete\Package\EventManagerKit\Controller\SinglePage\Dashboard\EventManager;
 
-use EventManagerKit\Dashboard\NamedEntityPage;
 use EventManagerKit\Entity\EventType;
+use EventManagerKit\Dashboard\NamedEntityPage;
 use Concrete\Package\EventManagerKit\Controller\Search\EventTypes as SearchController;
 
 class EventTypes extends NamedEntityPage

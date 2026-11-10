@@ -6,10 +6,6 @@ namespace EventManagerKit\Enum;
 
 enum TimeOfDay: string
 {
-    case Morning = 'morning';
-    case Afternoon = 'afternoon';
-    case Evening = 'evening';
-
     public static function fromHour(int $hour): self
     {
         return match (true) {
@@ -27,4 +23,7 @@ enum TimeOfDay: string
             self::Evening => t('Evening'),
         };
     }
+    case Morning = 'morning';
+    case Afternoon = 'afternoon';
+    case Evening = 'evening';
 }

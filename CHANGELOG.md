@@ -8,7 +8,7 @@ Notable changes to this project are documented here.
 
 - The calendar and list blocks load their events by `fetch` from
   `GET /ajax/events-manager/events` (HTML fragment in JSON, `Cache-Control:
-  no-store`), so pages holding them can be cached without showing stale
+no-store`), so pages holding them can be cached without showing stale
   events. Exclude `/ajax/events-manager/*` from CDN caching. The calendar's
   month links, paging and filters fetch too and keep the address bar in sync.
   Without JavaScript the blocks show a "please enable JavaScript" message.

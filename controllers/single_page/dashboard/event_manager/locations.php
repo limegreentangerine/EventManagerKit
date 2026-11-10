@@ -2,12 +2,23 @@
 
 namespace Concrete\Package\EventManagerKit\Controller\SinglePage\Dashboard\EventManager;
 
-use EventManagerKit\Dashboard\NamedEntityPage;
 use EventManagerKit\Entity\Location;
+use EventManagerKit\Dashboard\NamedEntityPage;
 use Concrete\Package\EventManagerKit\Controller\Search\Locations as SearchController;
 
 class Locations extends NamedEntityPage
 {
+    /** Walk up from $candidate: if we meet $entity, saving would create a loop. */
+    private function isSelfOrDescendant(Location $candidate, Location $entity): bool
+    {
+        for ($node = $candidate; $node; $node = $node->getParent()) {
+            if ($node->getID() === $entity->getID()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
     protected function entityClass(): string
     {
         return Location::class;
@@ -65,17 +76,5 @@ class Locations extends NamedEntityPage
     protected function applyExtra($entity, ?Location $parent): void
     {
         $entity->setParent($parent);
-    }
-
-    /** Walk up from $candidate: if we meet $entity, saving would create a loop. */
-    private function isSelfOrDescendant(Location $candidate, Location $entity): bool
-    {
-        for ($node = $candidate; $node; $node = $node->getParent()) {
-            if ($node->getID() === $entity->getID()) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

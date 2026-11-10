@@ -5,7 +5,7 @@
  *
  * @var string $endpoint
  * @var string $locale
- * @var bool $showFilters
+ * @var bool   $showFilters
  */
 ?>
 

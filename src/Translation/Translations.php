@@ -12,9 +12,13 @@ namespace EventManagerKit\Translation;
  */
 final class Translations
 {
+    private static function language(string $locale): string
+    {
+        return strtolower(preg_split('/[_-]/', $locale)[0]);
+    }
     /**
      * @template T of object
-     * @param iterable<T> $rows objects exposing getLocale()
+     * @param  iterable<T> $rows objects exposing getLocale()
      * @return T|null
      */
     public static function pick(iterable $rows, string $locale, string $defaultLocale = 'en_GB'): ?object
@@ -35,10 +39,5 @@ final class Translations
         }
 
         return $rows[0] ?? null;
-    }
-
-    private static function language(string $locale): string
-    {
-        return strtolower(preg_split('/[_-]/', $locale)[0]);
     }
 }

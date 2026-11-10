@@ -32,6 +32,18 @@ abstract class NamedEntityPage extends DashboardPageController
 
     abstract protected function pluralLabel(): string;
 
+    /** Hook: fill in the select options etc. a form needs. */
+    protected function prepareForm($entity = null): void {}
+
+    /** Hook: read extra posted fields (e.g. a location's parent). */
+    protected function resolveParent(array $post, $entity): ?Location
+    {
+        return null;
+    }
+
+    /** Hook: copy extra fields onto the entity before saving. */
+    protected function applyExtra($entity, ?Location $parent): void {}
+
     public function on_start()
     {
         parent::on_start();
@@ -156,16 +168,4 @@ abstract class NamedEntityPage extends DashboardPageController
 
         return $rf->json($this->error->jsonSerialize());
     }
-
-    /** Hook: fill in the select options etc. a form needs. */
-    protected function prepareForm($entity = null): void {}
-
-    /** Hook: read extra posted fields (e.g. a location's parent). */
-    protected function resolveParent(array $post, $entity): ?Location
-    {
-        return null;
-    }
-
-    /** Hook: copy extra fields onto the entity before saving. */
-    protected function applyExtra($entity, ?Location $parent): void {}
 }

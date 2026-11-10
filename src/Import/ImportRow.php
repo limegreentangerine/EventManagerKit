@@ -12,12 +12,12 @@ use DateTimeImmutable;
 final class ImportRow
 {
     /**
-     * @param array<string,string> $names
-     * @param array<string,string> $descriptions
-     * @param array<string,string> $location
-     * @param array<string,string> $subLocation
-     * @param array<string,string> $type
-     * @param list<array<string,string>> $tags one locale=>name map per tag
+     * @param array<string,string>       $names
+     * @param array<string,string>       $descriptions
+     * @param array<string,string>       $location
+     * @param array<string,string>       $subLocation
+     * @param array<string,string>       $type
+     * @param list<array<string,string>> $tags         one locale=>name map per tag
      */
     public function __construct(
         public readonly int $line,

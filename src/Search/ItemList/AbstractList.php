@@ -44,11 +44,6 @@ abstract class AbstractList extends ItemList implements ApplicationAwareInterfac
         return new Pagination($this, $adapter);
     }
 
-    public function createQuery()
-    {
-        $this->query->select($this->alias() . '.id')->from($this->table(), $this->alias());
-    }
-
     /**
      * Left-join a per-locale rows table (names/contents) for the locale being
      * displayed, so the list can sort and filter on the visible name.
@@ -62,6 +57,11 @@ abstract class AbstractList extends ItemList implements ApplicationAwareInterfac
             $joinAlias,
             "{$joinAlias}.{$foreignKey} = {$alias}.id AND {$joinAlias}.locale = " . $this->query->createNamedParameter(LocaleContext::active()),
         );
+    }
+
+    public function createQuery()
+    {
+        $this->query->select($this->alias() . '.id')->from($this->table(), $this->alias());
     }
 
     public function filterByName($name)

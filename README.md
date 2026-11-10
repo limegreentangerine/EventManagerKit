@@ -42,15 +42,15 @@ Keep these credentials private; do not commit them to the repository.
 
 Run these commands from the repository root:
 
-| Command | Purpose |
-| --- | --- |
-| `composer test` | Run PHPUnit tests. |
-| `composer test-coverage` | Run PHPUnit and print a coverage report. |
-| `composer typecheck` | Run PHPStan using `phpstan.neon`. Findings are displayed, but the command exits successfully even when PHPStan reports errors. |
-| `composer format:check` | Check PHP and JavaScript formatting. |
-| `composer format` | Format PHP and JavaScript files. |
-| `composer format:php:check` / `composer format:php` | Check or format PHP files with PHP-CS-Fixer. |
-| `composer format:js:check` / `composer format:js` | Check or format files with Prettier. |
+| Command                                             | Purpose                                                                                                                        |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `composer test`                                     | Run PHPUnit tests.                                                                                                             |
+| `composer test-coverage`                            | Run PHPUnit and print a coverage report.                                                                                       |
+| `composer typecheck`                                | Run PHPStan using `phpstan.neon`. Findings are displayed, but the command exits successfully even when PHPStan reports errors. |
+| `composer format:check`                             | Check PHP and JavaScript formatting.                                                                                           |
+| `composer format`                                   | Format PHP and JavaScript files.                                                                                               |
+| `composer format:php:check` / `composer format:php` | Check or format PHP files with PHP-CS-Fixer.                                                                                   |
+| `composer format:js:check` / `composer format:js`   | Check or format files with Prettier.                                                                                           |
 
 PHPStan analyzes `src` and `tests` at level 4, with bootstrap configuration
 from `phpstan-bootstrap.php`. If you add package directories, update the

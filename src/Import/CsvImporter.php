@@ -25,62 +25,6 @@ final class CsvImporter
     private const LOCALE_COLUMNS = ['name', 'description', 'sub_location', 'location', 'type', 'tags'];
 
     /**
-     * @param resource $handle open CSV stream
-     * @param list<string> $siteLocales locales the site is translated into
-     */
-    public function parse($handle, array $siteLocales): ImportPlan
-    {
-        $plan = new ImportPlan();
-
-        $header = fgetcsv($handle, escape: '');
-        if (!$header || $header === [null]) {
-            $plan->addError(1, 'The file is empty.');
-
-            return $plan;
-        }
-
-        $columns = $this->mapHeader($header);
-        foreach (['start', 'end'] as $required) {
-            if (!isset($columns[$required])) {
-                $plan->addError(1, sprintf('Missing required column "%s".', $required));
-            }
-        }
-        if (!isset($columns['name'])) {
-            $plan->addError(1, 'Missing a name column, e.g. "name_en_GB".');
-        }
-        foreach (array_keys($columns['name'] ?? []) as $locale) {
-            if (!in_array($locale, $siteLocales, true)) {
-                $plan->addError(1, sprintf('Column locale "%s" is not a locale of this site.', $locale));
-            }
-        }
-        if ($plan->errors) {
-            return $plan;
-        }
-
-        $line = 1;
-        while (($data = fgetcsv($handle, escape: '')) !== false) {
-            $line++;
-            if ($data === [null] || trim(implode('', $data)) === '') {
-                continue;
-            }
-            $row = $this->parseRow($line, $data, $columns, $plan);
-            if ($row) {
-                $plan->rows[] = $row;
-            }
-        }
-
-        return $plan;
-    }
-
-    /**
-     * Lowercase, underscore-separated handle used to match types, tags and locations.
-     */
-    public static function handleFor(string $name): string
-    {
-        return trim((string) preg_replace('/[^a-z0-9]+/', '_', strtolower(trim($name))), '_');
-    }
-
-    /**
      * @return array<string,mixed> start/end/all_day => index; name/... => [locale => index]
      */
     private function mapHeader(array $header): array
@@ -177,7 +121,7 @@ final class CsvImporter
     /**
      * "a;b" in en_GB and "x;y" in cy_GB become [[en_GB=>a, cy_GB=>x], [en_GB=>b, cy_GB=>y]].
      *
-     * @param array<string,string> $cells
+     * @param  array<string,string>       $cells
      * @return list<array<string,string>>
      */
     private function parseTags(int $line, array $cells, ImportPlan $plan): array
@@ -212,5 +156,61 @@ final class CsvImporter
         $hasTime = false;
 
         return null;
+    }
+
+    /**
+     * @param resource     $handle      open CSV stream
+     * @param list<string> $siteLocales locales the site is translated into
+     */
+    public function parse($handle, array $siteLocales): ImportPlan
+    {
+        $plan = new ImportPlan();
+
+        $header = fgetcsv($handle, escape: '');
+        if (!$header || $header === [null]) {
+            $plan->addError(1, 'The file is empty.');
+
+            return $plan;
+        }
+
+        $columns = $this->mapHeader($header);
+        foreach (['start', 'end'] as $required) {
+            if (!isset($columns[$required])) {
+                $plan->addError(1, sprintf('Missing required column "%s".', $required));
+            }
+        }
+        if (!isset($columns['name'])) {
+            $plan->addError(1, 'Missing a name column, e.g. "name_en_GB".');
+        }
+        foreach (array_keys($columns['name'] ?? []) as $locale) {
+            if (!in_array($locale, $siteLocales, true)) {
+                $plan->addError(1, sprintf('Column locale "%s" is not a locale of this site.', $locale));
+            }
+        }
+        if ($plan->errors) {
+            return $plan;
+        }
+
+        $line = 1;
+        while (($data = fgetcsv($handle, escape: '')) !== false) {
+            $line++;
+            if ($data === [null] || trim(implode('', $data)) === '') {
+                continue;
+            }
+            $row = $this->parseRow($line, $data, $columns, $plan);
+            if ($row) {
+                $plan->rows[] = $row;
+            }
+        }
+
+        return $plan;
+    }
+
+    /**
+     * Lowercase, underscore-separated handle used to match types, tags and locations.
+     */
+    public static function handleFor(string $name): string
+    {
+        return trim((string) preg_replace('/[^a-z0-9]+/', '_', strtolower(trim($name))), '_');
     }
 }

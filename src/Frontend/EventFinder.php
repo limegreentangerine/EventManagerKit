@@ -15,6 +15,24 @@ final class EventFinder
 {
     public function __construct(private readonly EntityManagerInterface $em) {}
 
+    private function base(): QueryBuilder
+    {
+        return $this->em->createQueryBuilder()
+            ->select('e')
+            ->from(Event::class, 'e')
+            ->where('e.published = true')
+            ->orderBy('e.startDate', 'ASC')
+            ->addOrderBy('e.id', 'ASC');
+    }
+
+    private function page(QueryBuilder $qb, int $limit, int $offset): EventPage
+    {
+        // One extra row tells us whether there is a next page without a COUNT.
+        $rows = $qb->setFirstResult($offset)->setMaxResults($limit + 1)->getQuery()->getResult();
+
+        return new EventPage(array_slice($rows, 0, $limit), count($rows) > $limit);
+    }
+
     /**
      * Events that have not finished yet.
      */
@@ -97,23 +115,5 @@ final class EventFinder
             'locations' => $names(Location::class, true),
             'tags' => $names(EventTag::class),
         ];
-    }
-
-    private function base(): QueryBuilder
-    {
-        return $this->em->createQueryBuilder()
-            ->select('e')
-            ->from(Event::class, 'e')
-            ->where('e.published = true')
-            ->orderBy('e.startDate', 'ASC')
-            ->addOrderBy('e.id', 'ASC');
-    }
-
-    private function page(QueryBuilder $qb, int $limit, int $offset): EventPage
-    {
-        // One extra row tells us whether there is a next page without a COUNT.
-        $rows = $qb->setFirstResult($offset)->setMaxResults($limit + 1)->getQuery()->getResult();
-
-        return new EventPage(array_slice($rows, 0, $limit), count($rows) > $limit);
     }
 }

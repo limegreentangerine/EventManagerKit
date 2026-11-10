@@ -3,11 +3,11 @@
 namespace Concrete\Package\EventManagerKit\Controller\SinglePage\Dashboard\EventManager;
 
 use Throwable;
-use EventManagerKit\Import\{CsvImporter, ImportPersister};
 use Doctrine\ORM\EntityManagerInterface;
 use EventManagerKit\Translation\LocaleContext;
-use Concrete\Core\Page\Controller\DashboardPageController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Concrete\Core\Page\Controller\DashboardPageController;
+use EventManagerKit\Import\{CsvImporter, ImportPersister};
 
 class Import extends DashboardPageController
 {

@@ -2,9 +2,9 @@
 
 namespace EventManagerKit\Search\Result\Item;
 
-use Concrete\Core\Search\Result\{Item, Result};
 use Concrete\Core\Search\Column\Set;
 use Concrete\Core\Support\Facade\Url as URL;
+use Concrete\Core\Search\Result\{Item, Result};
 
 /**
  * A search result row linking to /<detailsPath>/<id>.

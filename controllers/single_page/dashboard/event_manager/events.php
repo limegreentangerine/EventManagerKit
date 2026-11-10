@@ -3,12 +3,12 @@
 namespace Concrete\Package\EventManagerKit\Controller\SinglePage\Dashboard\EventManager;
 
 use DateTimeImmutable;
-use EventManagerKit\Entity\{Event, EventTag, EventType, Location};
-use EventManagerKit\Slug\{SlugGenerator, SlugService};
 use Doctrine\ORM\EntityManagerInterface;
 use EventManagerKit\Translation\LocaleContext;
 use Concrete\Core\Http\ResponseFactoryInterface;
+use EventManagerKit\Slug\{SlugGenerator, SlugService};
 use Concrete\Core\Page\Controller\DashboardPageController;
+use EventManagerKit\Entity\{Event, EventTag, EventType, Location};
 use Concrete\Package\EventManagerKit\Controller\Search\Events as SearchController;
 
 class Events extends DashboardPageController
@@ -18,6 +18,56 @@ class Events extends DashboardPageController
     protected $helpers = ['form', 'concrete/ui'];
 
     protected EntityManagerInterface $em;
+
+    private function prepareForm(): void
+    {
+        $this->set('typeOptions', ['' => t('(none)')] + $this->options(EventType::class));
+        $this->set('locationOptions', ['' => t('(none)')] + $this->options(Location::class, true));
+        $this->set('tagOptions', $this->options(EventTag::class));
+    }
+
+    /**
+     * @return array<string,string> id => label, in the displayed locale
+     */
+    private function options(string $class, bool $full = false): array
+    {
+        $options = [];
+        foreach ($this->em->getRepository($class)->findAll() as $entity) {
+            $options[$entity->getID()] = $full ? $entity->getFullName() : $entity->getName();
+        }
+        asort($options);
+
+        return $options;
+    }
+
+    private function lookup(string $class, mixed $id, string $what): ?object
+    {
+        $id = (string) $id;
+        if ($id === '') {
+            return null;
+        }
+        $entity = $this->em->find($class, $id);
+        if (!$entity) {
+            $this->error->add(t('Unable to find the selected %s.', $what));
+        }
+
+        return $entity;
+    }
+
+    /**
+     * Dates arrive from <input type="datetime-local"> / <input type="date">.
+     */
+    private function parseDate(string $value, bool $allDay): ?DateTimeImmutable
+    {
+        foreach ($allDay ? ['Y-m-d', 'Y-m-d\TH:i'] : ['Y-m-d\TH:i', 'Y-m-d\TH:i:s'] as $format) {
+            $date = DateTimeImmutable::createFromFormat('!' . $format, $value);
+            if ($date && $date->format($format) === $value) {
+                return $allDay ? $date->setTime(0, 0) : $date;
+            }
+        }
+
+        return null;
+    }
 
     public function on_start()
     {
@@ -187,55 +237,5 @@ class Events extends DashboardPageController
         }
 
         return $rf->json($this->error->jsonSerialize());
-    }
-
-    private function prepareForm(): void
-    {
-        $this->set('typeOptions', ['' => t('(none)')] + $this->options(EventType::class));
-        $this->set('locationOptions', ['' => t('(none)')] + $this->options(Location::class, true));
-        $this->set('tagOptions', $this->options(EventTag::class));
-    }
-
-    /**
-     * @return array<string,string> id => label, in the displayed locale
-     */
-    private function options(string $class, bool $full = false): array
-    {
-        $options = [];
-        foreach ($this->em->getRepository($class)->findAll() as $entity) {
-            $options[$entity->getID()] = $full ? $entity->getFullName() : $entity->getName();
-        }
-        asort($options);
-
-        return $options;
-    }
-
-    private function lookup(string $class, mixed $id, string $what): ?object
-    {
-        $id = (string) $id;
-        if ($id === '') {
-            return null;
-        }
-        $entity = $this->em->find($class, $id);
-        if (!$entity) {
-            $this->error->add(t('Unable to find the selected %s.', $what));
-        }
-
-        return $entity;
-    }
-
-    /**
-     * Dates arrive from <input type="datetime-local"> / <input type="date">.
-     */
-    private function parseDate(string $value, bool $allDay): ?DateTimeImmutable
-    {
-        foreach ($allDay ? ['Y-m-d', 'Y-m-d\TH:i'] : ['Y-m-d\TH:i', 'Y-m-d\TH:i:s'] as $format) {
-            $date = DateTimeImmutable::createFromFormat('!' . $format, $value);
-            if ($date && $date->format($format) === $value) {
-                return $allDay ? $date->setTime(0, 0) : $date;
-            }
-        }
-
-        return null;
     }
 }

@@ -5,10 +5,10 @@
  * whichever page the block is on; the block's script turns them into fetches.
  *
  * @var \EventManagerKit\Frontend\EventQuery $query
- * @var array $events
- * @var bool $hasMore
- * @var array|null $filters
- * @var string $locale
+ * @var array                                $events
+ * @var bool                                 $hasMore
+ * @var array|null                           $filters
+ * @var string                               $locale
  */
 
 use EventManagerKit\Frontend\EventDisplay;

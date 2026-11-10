@@ -5,10 +5,10 @@ namespace Concrete\Package\EventManagerKit\Block\EmEventList;
 defined('C5_EXECUTE') or die('Access Denied.');
 
 use Concrete\Core\Support\Facade\Url;
-use EventManagerKit\Frontend\EventsEndpoint;
-use EventManagerKit\Translation\LocaleContext;
 use Concrete\Core\Block\BlockController;
 use Concrete\Core\Error\ErrorList\ErrorList;
+use EventManagerKit\Frontend\EventsEndpoint;
+use EventManagerKit\Translation\LocaleContext;
 
 class Controller extends BlockController
 {
@@ -18,6 +18,11 @@ class Controller extends BlockController
     protected $btInterfaceHeight = 300;
     // Events change in the dashboard at any time; never serve stale output.
     protected $btCacheBlockOutput = false;
+
+    private function clampCount(mixed $count): int
+    {
+        return max(1, min(50, (int) $count ?: 5));
+    }
 
     public function getBlockTypeName()
     {
@@ -60,10 +65,5 @@ class Controller extends BlockController
         $args['numEvents'] = $this->clampCount($args['numEvents'] ?? 5);
 
         parent::save($args);
-    }
-
-    private function clampCount(mixed $count): int
-    {
-        return max(1, min(50, (int) $count ?: 5));
     }
 }

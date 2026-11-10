@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace EventManagerKit\Tests\Search;
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use EventManagerKit\Entity\{Event, EventTag, EventType, Location};
 use EventManagerKit\Search\Column\Set\{EventTags, EventTypes, Events, Locations};
-use PHPUnit\Framework\Attributes\DataProvider;
 
 final class ColumnSetTest extends TestCase
 {

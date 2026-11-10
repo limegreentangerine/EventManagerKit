@@ -2,13 +2,13 @@
 
 namespace EventManagerKit\Entity;
 
-use IntlDateFormatter;
 use DateTimeImmutable;
+use IntlDateFormatter;
 use InvalidArgumentException;
 use Doctrine\ORM\Mapping as ORM;
 use ClassKit\Entity\Core\UpdatedGuidEntity;
-use EventManagerKit\Translation\{LocaleContext, Translations};
 use Doctrine\Common\Collections\{ArrayCollection, Collection};
+use EventManagerKit\Translation\{LocaleContext, Translations};
 
 /**
  * @ORM\Entity
@@ -73,6 +73,17 @@ class Event extends UpdatedGuidEntity
         parent::__construct();
         $this->contents = new ArrayCollection();
         $this->tags = new ArrayCollection();
+    }
+
+    private function formatDate(DateTimeImmutable $date): string
+    {
+        $formatter = new IntlDateFormatter(
+            LocaleContext::active(),
+            IntlDateFormatter::MEDIUM,
+            $this->allDay ? IntlDateFormatter::NONE : IntlDateFormatter::SHORT,
+        );
+
+        return (string) $formatter->format($date);
     }
 
     public function getContents(): Collection
@@ -171,17 +182,6 @@ class Event extends UpdatedGuidEntity
     public function getEndString(): string
     {
         return $this->formatDate($this->endDate);
-    }
-
-    private function formatDate(DateTimeImmutable $date): string
-    {
-        $formatter = new IntlDateFormatter(
-            LocaleContext::active(),
-            IntlDateFormatter::MEDIUM,
-            $this->allDay ? IntlDateFormatter::NONE : IntlDateFormatter::SHORT,
-        );
-
-        return (string) $formatter->format($date);
     }
 
     public function getLocationName(): string

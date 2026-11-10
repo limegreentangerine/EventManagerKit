@@ -27,9 +27,9 @@ final class EndpointRequest
     ) {}
 
     /**
-     * @param array<string,mixed> $input raw query string
-     * @param list<string> $siteLocales locales the site is translated into
-     * @return self|null null when the request is not one we serve (answer 400)
+     * @param  array<string,mixed> $input       raw query string
+     * @param  list<string>        $siteLocales locales the site is translated into
+     * @return self|null           null when the request is not one we serve (answer 400)
      */
     public static function fromArray(array $input, array $siteLocales, string $defaultLocale): ?self
     {

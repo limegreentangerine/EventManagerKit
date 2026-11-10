@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace EventManagerKit\Import;
 
 use EventManagerKit\Slug\SlugService;
-use EventManagerKit\Translation\LocaleContext;
 use Doctrine\ORM\EntityManagerInterface;
+use EventManagerKit\Translation\LocaleContext;
 use EventManagerKit\Entity\{Event, EventTag, EventType, Location};
 
 /**
@@ -18,6 +18,53 @@ use EventManagerKit\Entity\{Event, EventTag, EventType, Location};
 final class ImportPersister
 {
     public function __construct(private readonly EntityManagerInterface $em) {}
+
+    /**
+     * Re-importing the same file must not duplicate events: same start and the
+     * same name in the default locale counts as already imported.
+     */
+    private function exists(ImportRow $row, string $default): bool
+    {
+        $name = $row->names[$default] ?? reset($row->names);
+        $candidates = $this->em->getRepository(Event::class)->findBy(['startDate' => $row->start]);
+        foreach ($candidates as $event) {
+            if ($event->getName($default, $default) === $name) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param class-string<EventType|EventTag|Location> $class
+     * @param array<string,string>                      $names
+     */
+    private function named(string $class, array $names, string $default, ?Location $parent = null): object
+    {
+        $handle = CsvImporter::handleFor($names[$default] ?? reset($names));
+        // A sub location handle is scoped to its parent so "Stage" in two halls stays distinct.
+        if ($parent) {
+            $handle = $parent->getHandle() . '_' . $handle;
+        }
+
+        $entity = $this->em->getRepository($class)->findOneBy(['handle' => $handle]);
+        if (!$entity) {
+            $entity = (new $class())->setHandle($handle);
+            if ($parent) {
+                $entity->setParent($parent);
+            }
+            $this->em->persist($entity);
+            // Flush so later rows in this import find it by handle.
+            $this->em->flush();
+        }
+
+        foreach ($names as $locale => $name) {
+            $entity->setName($locale, $name);
+        }
+
+        return $entity;
+    }
 
     /**
      * @return array{created:int,skipped:int}
@@ -55,52 +102,5 @@ final class ImportPersister
         });
 
         return ['created' => $created, 'skipped' => $skipped];
-    }
-
-    /**
-     * Re-importing the same file must not duplicate events: same start and the
-     * same name in the default locale counts as already imported.
-     */
-    private function exists(ImportRow $row, string $default): bool
-    {
-        $name = $row->names[$default] ?? reset($row->names);
-        $candidates = $this->em->getRepository(Event::class)->findBy(['startDate' => $row->start]);
-        foreach ($candidates as $event) {
-            if ($event->getName($default, $default) === $name) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param class-string<EventType|EventTag|Location> $class
-     * @param array<string,string> $names
-     */
-    private function named(string $class, array $names, string $default, ?Location $parent = null): object
-    {
-        $handle = CsvImporter::handleFor($names[$default] ?? reset($names));
-        // A sub location handle is scoped to its parent so "Stage" in two halls stays distinct.
-        if ($parent) {
-            $handle = $parent->getHandle() . '_' . $handle;
-        }
-
-        $entity = $this->em->getRepository($class)->findOneBy(['handle' => $handle]);
-        if (!$entity) {
-            $entity = (new $class())->setHandle($handle);
-            if ($parent) {
-                $entity->setParent($parent);
-            }
-            $this->em->persist($entity);
-            // Flush so later rows in this import find it by handle.
-            $this->em->flush();
-        }
-
-        foreach ($names as $locale => $name) {
-            $entity->setName($locale, $name);
-        }
-
-        return $entity;
     }
 }
