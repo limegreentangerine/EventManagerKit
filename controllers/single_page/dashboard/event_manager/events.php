@@ -230,7 +230,7 @@ class Events extends DashboardPageController
 
         if (!$this->error->has()) {
             $event ??= new Event();
-            $event->setDates($start, $end)->setAllDay($allDay)->setPublished(!empty($post['published']))->setLocation($location)->setType($type)
+            $event->setDates($start, $end)->setAllDay($allDay)->setPublished(!empty($post['published']))->setFeatured(!empty($post['featured']))->setLocation($location)->setType($type)
                 ->setMedia($imageID, $videoID, $posterID)
                 ->setLink($linkType ?: null, $linkValue)
                 ->setRecurrence($rule);

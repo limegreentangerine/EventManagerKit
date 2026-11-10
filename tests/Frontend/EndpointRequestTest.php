@@ -75,4 +75,22 @@ final class EndpointRequestTest extends TestCase
 
         $this->assertNull($r->query->typeId);
     }
+
+    public function testFeaturedViewIsServedWithClampedLimit(): void
+    {
+        $r = $this->request(['view' => 'featured', 'limit' => '9999']);
+
+        $this->assertSame('featured', $r->view);
+        $this->assertSame(50, $r->limit);
+    }
+
+    public function testEventViewNeedsAWellFormedEventId(): void
+    {
+        $id = '0F8FAD5B-D9CB-469F-A165-70867728950E';
+
+        $this->assertSame(strtolower($id), $this->request(['view' => 'event', 'event' => $id])->eventId);
+        $this->assertNull($this->request(['view' => 'event']));
+        $this->assertNull($this->request(['view' => 'event', 'event' => "' OR 1=1 --"]));
+        $this->assertNull($this->request(['view' => 'event', 'event' => [$id]]));
+    }
 }

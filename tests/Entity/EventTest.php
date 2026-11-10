@@ -11,6 +11,14 @@ use EventManagerKit\Entity\{Event, EventTag, EventType, Location};
 
 final class EventTest extends TestCase
 {
+    public function testFeaturedIsOffByDefaultAndSettable(): void
+    {
+        $event = new Event();
+
+        $this->assertFalse($event->isFeatured());
+        $this->assertTrue($event->setFeatured(true)->isFeatured());
+    }
+
     public function testContentFallsBackToDefaultLocale(): void
     {
         $event = (new Event())->setContent('en_GB', 'Open day', 'Come along');

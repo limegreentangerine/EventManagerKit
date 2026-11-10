@@ -24,8 +24,10 @@
 			'locale',
 			(_a = section.getAttribute('data-em-locale')) !== null && _a !== void 0 ? _a : ''
 		);
-		if (view === 'list') {
+		if (view === 'list' || view === 'featured') {
 			params.set('limit', section.getAttribute('data-em-limit') || '');
+		} else if (view === 'event') {
+			params.set('event', section.getAttribute('data-em-event') || '');
 		} else {
 			params.set('filters', section.getAttribute('data-em-filters') === '1' ? '1' : '0');
 			KEYS.forEach((key) => {

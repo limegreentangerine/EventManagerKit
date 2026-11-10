@@ -58,14 +58,35 @@ final class EventFinder
     /**
      * Occurrences that have not finished yet.
      */
-    public function upcoming(int $limit, ?DateTimeImmutable $now = null): EventPage
+    public function upcoming(int $limit, ?DateTimeImmutable $now = null, bool $featuredOnly = false): EventPage
     {
         $now ??= new DateTimeImmutable();
         $qb = $this->base()
             ->andWhere('e.endDate >= :now OR e.recurrence IS NOT NULL')
             ->setParameter('now', $now);
+        if ($featuredOnly) {
+            $qb->andWhere('e.featured = true');
+        }
 
         return $this->page($qb->getQuery()->getResult(), $now, null, $limit, 0);
+    }
+
+    /**
+     * The next occurrence of one published event; a finished one-off event
+     * still shows its own dates. Null when missing, a draft, or a finished series.
+     */
+    public function next(string $id, ?DateTimeImmutable $now = null): ?Occurrence
+    {
+        $now ??= new DateTimeImmutable();
+        /** @var list<Event> $events */
+        $events = $this->base()->andWhere('e.id = :id')->setParameter('id', $id)->getQuery()->getResult();
+        $event = $events[0] ?? null;
+        if (!$event) {
+            return null;
+        }
+
+        return $this->page($events, $now, null, 1, 0)->occurrences[0]
+            ?? ($event->getRecurrence() ? null : new Occurrence($event, $event->getStartDate(), $event->getEndDate()));
     }
 
     /**

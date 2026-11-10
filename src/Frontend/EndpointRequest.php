@@ -14,7 +14,7 @@ namespace EventManagerKit\Frontend;
  */
 final class EndpointRequest
 {
-    public const VIEWS = ['calendar', 'list'];
+    public const VIEWS = ['calendar', 'list', 'featured', 'event'];
     public const MAX_LIMIT = 50;
     public const DEFAULT_LIMIT = 5;
 
@@ -24,6 +24,7 @@ final class EndpointRequest
         public readonly int $limit,
         public readonly bool $showFilters,
         public readonly EventQuery $query,
+        public readonly ?string $eventId = null,
     ) {}
 
     /**
@@ -46,6 +47,12 @@ final class EndpointRequest
         $limit = $input['limit'] ?? null;
         $limit = is_string($limit) && ctype_digit($limit) ? max(1, min(self::MAX_LIMIT, (int) $limit)) : self::DEFAULT_LIMIT;
 
-        return new self($view, $locale, $limit, ($input['filters'] ?? null) === '1', EventQuery::fromArray($input));
+        $event = $input['event'] ?? null;
+        $event = is_string($event) && preg_match(EventQuery::GUID, $event) ? strtolower($event) : null;
+        if ($view === 'event' && !$event) {
+            return null;
+        }
+
+        return new self($view, $locale, $limit, ($input['filters'] ?? null) === '1', EventQuery::fromArray($input), $event);
     }
 }

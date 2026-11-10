@@ -3,6 +3,7 @@ $p = (array) $formContent;
 $id = $entity ? $entity->getID() : ($p['id'] ?? '');
 $allDay = $formContent ? !empty($p['allDay']) : ($entity && $entity->isAllDay());
 $published = $formContent ? !empty($p['published']) : ($entity ? $entity->isPublished() : true);
+$featured = $formContent ? !empty($p['featured']) : ($entity && $entity->isFeatured());
 $dateFormat = $allDay ? 'Y-m-d' : 'Y-m-d\TH:i';
 $start = $p['startDate'] ?? ($entity ? $entity->getStartDate()->format($dateFormat) : '');
 $end = $p['endDate'] ?? ($entity ? $entity->getEndDate()->format($dateFormat) : '');
@@ -34,6 +35,11 @@ if ($entity) {
     <div class="form-check mb-4">
         <?php echo $form->checkbox('published', '1', $published, ['id' => 'published']); ?>
         <?php echo $form->label('published', t('Published (visible on the website)'), ['class' => 'form-check-label']); ?>
+    </div>
+
+    <div class="form-check mb-4">
+        <?php echo $form->checkbox('featured', '1', $featured, ['id' => 'featured']); ?>
+        <?php echo $form->label('featured', t('Featured (shown by the Featured Events block)'), ['class' => 'form-check-label']); ?>
     </div>
 
     <fieldset>

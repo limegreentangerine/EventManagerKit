@@ -45,6 +45,26 @@ final class EventsEndpoint
         ]);
     }
 
+    private function featured(EventFinder $finder, EndpointRequest $request): string
+    {
+        return $this->render('frontend/event_list', [
+            'occurrences' => $finder->upcoming($request->limit, null, true)->occurrences,
+            'locale' => $request->locale,
+            'emptyText' => t('There are no featured events.'),
+        ]);
+    }
+
+    private function single(EventFinder $finder, EndpointRequest $request): string
+    {
+        $occurrence = $finder->next((string) $request->eventId);
+
+        return $this->render('frontend/event_list', [
+            'occurrences' => $occurrence ? [$occurrence] : [],
+            'locale' => $request->locale,
+            'emptyText' => t('This event is not available.'),
+        ]);
+    }
+
     private function render(string $element, array $data): string
     {
         ob_start();
@@ -77,7 +97,12 @@ final class EventsEndpoint
         \Concrete\Core\Localization\Localization::changeLocale($request->locale);
 
         $finder = new EventFinder(app(EntityManagerInterface::class));
-        $html = $request->view === 'calendar' ? $this->calendar($finder, $request) : $this->list($finder, $request);
+        $html = match ($request->view) {
+            'calendar' => $this->calendar($finder, $request),
+            'featured' => $this->featured($finder, $request),
+            'event' => $this->single($finder, $request),
+            default => $this->list($finder, $request),
+        };
 
         return $this->json(['html' => $html]);
     }

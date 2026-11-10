@@ -14,6 +14,7 @@ class Events extends Set
         $this->addColumn(new Column('e.location', t('Location'), 'getLocationName', false));
         $this->addColumn(new Column('e.type', t('Type'), 'getTypeName', false));
         $this->addColumn(new Column('e.published', t('Status'), 'getStatusName', false));
+        $this->addColumn(new Column('e.featured', t('Featured'), 'getFeaturedName', false));
 
         $this->setDefaultSortColumn($this->getColumnByKey('e.startDate'), 'desc');
     }

@@ -15,7 +15,7 @@ use DateTimeImmutable;
  */
 final class EventQuery
 {
-    private const GUID = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
+    public const GUID = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
     public const PER_PAGE = 10;
     public const MAX_PAGE = 500;
 

@@ -49,6 +49,13 @@ class Event extends UpdatedGuidEntity
     protected bool $published = true;
 
     /**
+     * Shown by the Featured Events block.
+     *
+     * @ORM\Column(type="boolean", nullable=false, options={"default": 0})
+     */
+    protected bool $featured = false;
+
+    /**
      * @ORM\ManyToOne(targetEntity="Location")
      * @ORM\JoinColumn(name="locationId", referencedColumnName="id", nullable=true, onDelete="SET NULL")
      */
@@ -242,6 +249,23 @@ class Event extends UpdatedGuidEntity
         $this->published = $published;
 
         return $this;
+    }
+
+    public function isFeatured(): bool
+    {
+        return $this->featured;
+    }
+
+    public function setFeatured(bool $featured): static
+    {
+        $this->featured = $featured;
+
+        return $this;
+    }
+
+    public function getFeaturedName(): string
+    {
+        return $this->featured ? t('Featured') : '';
     }
 
     public function getStatusName(): string

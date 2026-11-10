@@ -17,7 +17,8 @@ namespace `EventManagerKit`.
   expanded into occurrences.
 - **Locations**: address, coordinates, online URL, and an optional Mapbox map
   when the `mapbox` package is installed.
-- **Blocks**: `event_calendar` and `em_event_list`. They load events by
+- **Blocks**: `event_calendar`, `em_event_list`, `em_featured_events` (events
+  with the Featured flag) and `em_single_event` (one chosen event). They load events by
   `fetch` from `GET /ajax/events-manager/events`, so pages stay cacheable.
   Exclude `/ajax/events-manager/*` from CDN caching.
 - **Event page** at `/events/{slug}` (slugs are per language; drafts 404 except
