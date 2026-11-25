@@ -2,11 +2,20 @@
 
 Notable changes to this project are documented here.
 
-## 1.0.0 (unreleased)
+## 1.1.0 (2026-11-25)
 
 ### Added
 
 - Activities, switched on per site under Event Manager > Settings (schema version 1.0.9; upgrade the package, then clear the cache). They replace the separate `activity_manager` package: an activity is an event flagged "This is an activity", with age groups, free/paid plus per-language price details, and a per-language short summary shown in lists instead of the description. Enabling adds an Age Groups dashboard page (names per language plus a display order), age and price filters on the calendar, and a "Show: events / activities / both" option on the Event List and Event Calendar blocks. The event page lists ages and price. Turning activities off hides all of this again without deleting anything.
+
+### Fixed
+
+- PHPStan no longer reports an error for the dashboard search result links.
+
+## 1.0.0 (2026-11-11)
+
+### Added
+
 - Featured events (schema version 1.0.8; upgrade the package, then clear the cache). Events have a Featured checkbox (and a Featured column in the dashboard list). The new Featured Events block lists upcoming featured events, and the new Single Event block shows one chosen event (its next date, or its own dates once a one-off event has finished). Both load through the events endpoint like the other blocks, reuse their accessible markup (status region, `<time>`, labelled by the block title) and show nothing for a draft or deleted event.
 - Block accessibility (WCAG 2.2 AA): focus is kept on filters and moved to the month heading after month/page navigation, updates and errors are announced through a status region instead of re-reading the whole block, decorative arrows are hidden from screen readers, dates use `<time>`, and titled blocks are labelled regions.
 - Event page accessibility (WCAG 2.2 AA): the date uses `<time>`, links that open a new tab say so, the calendar link separators and the map are hidden/labelled for screen readers, the video has a download fallback, and the dashboard "+ New" buttons have distinct names.
