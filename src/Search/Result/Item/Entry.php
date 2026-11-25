@@ -26,6 +26,6 @@ class Entry extends Item
 
     public function getViewUrl()
     {
-        return URL::to($this->detailsPath, $this->entity->getID());
+        return URL::to($this->detailsPath . '/' . $this->entity->getID());
     }
 }
