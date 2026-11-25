@@ -81,4 +81,26 @@ final class EventQueryTest extends TestCase
         $this->assertSame(['month' => '2026-12', 'type' => self::GUID], $q->toParams(new DateTimeImmutable('2026-12-01')));
         $this->assertSame(['month' => '2026-11', 'type' => self::GUID, 'page' => '2'], $q->toParams(null, 2));
     }
+
+    public function testActivityFiltersAreParsed(): void
+    {
+        $q = $this->query(['age' => self::GUID, 'price' => 'free', 'kind' => 'activity']);
+
+        $this->assertSame(self::GUID, $q->ageGroupId);
+        $this->assertTrue($q->free);
+        $this->assertSame('activity', $q->kind);
+        $this->assertFalse($this->query(['price' => 'paid'])->free);
+        // kind is a block setting sent on every request, so it stays out of shareable links.
+        $this->assertSame(['month' => '2026-11', 'age' => self::GUID, 'price' => 'free'], $q->toParams());
+    }
+
+    public function testBadActivityFiltersAreDropped(): void
+    {
+        $q = $this->query(['age' => "' OR 1=1", 'price' => '1', 'kind' => 'all']);
+
+        $this->assertNull($q->ageGroupId);
+        $this->assertNull($q->free);
+        $this->assertNull($q->kind);
+        $this->assertNull($this->query(['price' => ['free'], 'kind' => ['event']])->kind);
+    }
 }

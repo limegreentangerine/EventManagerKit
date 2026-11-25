@@ -78,6 +78,30 @@ class Event extends UpdatedGuidEntity
     protected Collection $tags;
 
     /**
+     * Activities (switched on in Settings) are events with ages and a price.
+     *
+     * @ORM\Column(type="boolean", nullable=false, options={"default": 0})
+     */
+    protected bool $activity = false;
+
+    /**
+     * True free, false paid, null not stated. Details go in EventContent::$priceText.
+     *
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    protected ?bool $free = null;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="AgeGroup")
+     * @ORM\JoinTable(
+     *      name="emEventAgeGroups",
+     *      joinColumns={@ORM\JoinColumn(name="eventId", referencedColumnName="id", onDelete="CASCADE")},
+     *      inverseJoinColumns={@ORM\JoinColumn(name="ageGroupId", referencedColumnName="id", onDelete="CASCADE")}
+     * )
+     */
+    protected Collection $ageGroups;
+
+    /**
      * Concrete file IDs (file manager) for the event's media.
      *
      * @ORM\Column(type="integer", nullable=true)
@@ -118,6 +142,7 @@ class Event extends UpdatedGuidEntity
         parent::__construct();
         $this->contents = new ArrayCollection();
         $this->tags = new ArrayCollection();
+        $this->ageGroups = new ArrayCollection();
     }
 
     private function formatDate(DateTimeImmutable $date): string
@@ -181,6 +206,20 @@ class Event extends UpdatedGuidEntity
     public function getSlug(?string $locale = null): ?string
     {
         return $this->getContent($locale)?->getSlug();
+    }
+
+    /**
+     * Activity text for exactly this locale; does nothing until setContent() has created that row.
+     */
+    public function setActivityContent(string $locale, ?string $summary, ?string $priceText): static
+    {
+        foreach ($this->contents as $content) {
+            if (strcasecmp($content->getLocale(), $locale) === 0) {
+                $content->setSummary($summary)->setPriceText($priceText);
+            }
+        }
+
+        return $this;
     }
 
     public function removeContent(EventContent $content): static
@@ -334,6 +373,52 @@ class Event extends UpdatedGuidEntity
     public function removeTag(EventTag $tag): static
     {
         $this->tags->removeElement($tag);
+
+        return $this;
+    }
+
+    public function isActivity(): bool
+    {
+        return $this->activity;
+    }
+
+    public function setActivity(bool $activity): static
+    {
+        $this->activity = $activity;
+
+        return $this;
+    }
+
+    public function isFree(): ?bool
+    {
+        return $this->free;
+    }
+
+    public function setFree(?bool $free): static
+    {
+        $this->free = $free;
+
+        return $this;
+    }
+
+    /** Age groups, in their configured order. */
+    public function getAgeGroups(): array
+    {
+        $groups = $this->ageGroups->toArray();
+        usort($groups, fn(AgeGroup $a, AgeGroup $b) => [$a->getSortOrder(), $a->getName()] <=> [$b->getSortOrder(), $b->getName()]);
+
+        return $groups;
+    }
+
+    /** @param list<AgeGroup> $groups */
+    public function setAgeGroups(array $groups): static
+    {
+        $this->ageGroups->clear();
+        foreach ($groups as $group) {
+            if (!$this->ageGroups->contains($group)) {
+                $this->ageGroups->add($group);
+            }
+        }
 
         return $this;
     }

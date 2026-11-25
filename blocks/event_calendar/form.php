@@ -9,4 +9,10 @@
         <?php echo $form->checkbox('showFilters', '1', !empty($showFilters)); ?>
         <?php echo $form->label('showFilters', t('Show type, location and tag filters'), ['class' => 'form-check-label']); ?>
     </div>
+    <?php if (!empty($activitiesEnabled)) { ?>
+        <div class="form-group mb-3">
+            <?php echo $form->label('kind', t('Show')); ?>
+            <?php echo $form->select('kind', ['' => t('Events and activities'), 'event' => t('Events only'), 'activity' => t('Activities only')], $kind ?? ''); ?>
+        </div>
+    <?php } ?>
 </fieldset>

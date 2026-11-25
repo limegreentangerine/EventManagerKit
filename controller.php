@@ -2,6 +2,7 @@
 
 namespace Concrete\Package\EventManagerKit;
 
+use EventManagerKit\Activities;
 use Concrete\Core\Entity\Package;
 use ClassKit\Package\PackageController;
 use Concrete\Core\Support\Facade\Events;
@@ -30,7 +31,7 @@ class Controller extends PackageController
      *
      * @var string
      */
-    protected $pkgVersion = '1.0.8';
+    protected $pkgVersion = '1.0.9';
 
     /**
      * The minimum Concrete version compatible with the package.
@@ -105,6 +106,18 @@ class Controller extends PackageController
      */
     protected $tasks = [];
 
+    private function addDashboardPage(string $path, Package $pkg, string $name, string $description): void
+    {
+        $this->addSinglePage($path, $pkg, $name, $description);
+
+        // A page created before its view file existed keeps an empty
+        // cFilename and renders blank; write it directly.
+        $page = Page::getByPath($path);
+        if (!$page->getCollectionFilename()) {
+            $this->app->make(Connection::class)->update('Pages', ['cFilename' => SinglePage::getPathToNode($path, $pkg)], ['cID' => $page->getCollectionID()]);
+        }
+    }
+
     public function getPackageName()
     {
         return t('Event Manager');
@@ -127,23 +140,30 @@ class Controller extends PackageController
             '/event_tags' => [t('Event Tags'), t('Manage event tags')],
             '/locations' => [t('Locations'), t('Manage locations')],
             '/import' => [t('Import'), t('Import events from CSV')],
+            '/settings' => [t('Settings'), t('Event Manager settings')],
         ];
-        $db = $this->app->make(Connection::class);
 
         // Public event page, /events/{slug}; kept out of navigation menus.
         $events = $this->addSinglePage('/events', $pkg, t('Events'), t('Public event page'));
         $events->setAttribute('exclude_nav', true);
 
         foreach ($pages as $suffix => [$name, $description]) {
-            $path = '/dashboard/event_manager' . $suffix;
-            $this->addSinglePage($path, $pkg, $name, $description);
+            $this->addDashboardPage('/dashboard/event_manager' . $suffix, $pkg, $name, $description);
+        }
+        $this->syncActivityPages($pkg);
+    }
 
-            // A page created before its view file existed keeps an empty
-            // cFilename and renders blank; write it directly.
-            $page = Page::getByPath($path);
-            if (!$page->getCollectionFilename()) {
-                $db->update('Pages', ['cFilename' => SinglePage::getPathToNode($path, $pkg)], ['cID' => $page->getCollectionID()]);
-            }
+    /**
+     * The Age Groups page exists only while activities are enabled. Age
+     * groups themselves stay in the database when it is removed.
+     */
+    public function syncActivityPages(Package $pkg): void
+    {
+        $page = Page::getByPath(Activities::AGE_GROUPS_PATH);
+        if (Activities::enabled()) {
+            $this->addDashboardPage(Activities::AGE_GROUPS_PATH, $pkg, t('Age Groups'), t('Manage activity age groups'));
+        } elseif ($page && !$page->isError()) {
+            $page->delete();
         }
     }
 

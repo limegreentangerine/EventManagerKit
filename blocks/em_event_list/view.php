@@ -14,6 +14,7 @@
     data-em-endpoint="<?php echo h($endpoint); ?>"
     data-em-view="list"
     data-em-locale="<?php echo h($locale); ?>"
+    data-em-kind="<?php echo h($kind); ?>"
     data-em-limit="<?php echo (int) $numEvents; ?>"
     data-em-updated="<?php echo h(t('Events updated.')); ?>"
     data-em-error="<?php echo h(t('Events could not be loaded. Please try again later.')); ?>">

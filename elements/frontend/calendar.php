@@ -31,6 +31,9 @@ $next = $query->month->modify('+1 month');
             'type' => [t('All event types'), $filters['types'], $query->typeId],
             'location' => [t('All locations'), $filters['locations'], $query->locationId],
             'tag' => [t('All tags'), $filters['tags'], $query->tagId],
+            'age' => [t('All ages'), $filters['ageGroups'], $query->ageGroupId],
+            // Price filter only alongside age groups, i.e. when activities are enabled.
+            'price' => [t('Any price'), $filters['ageGroups'] ? ['free' => t('Free'), 'paid' => t('Paid')] : [], $query->free === null ? null : ($query->free ? 'free' : 'paid')],
         ] as $name => [$all, $options, $selected]) { ?>
             <?php if ($options) { ?>
                 <label class="em-events__filter">

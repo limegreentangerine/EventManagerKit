@@ -13,6 +13,7 @@
     data-em-endpoint="<?php echo h($endpoint); ?>"
     data-em-view="calendar"
     data-em-locale="<?php echo h($locale); ?>"
+    data-em-kind="<?php echo h($kind); ?>"
     data-em-filters="<?php echo !empty($showFilters) ? '1' : '0'; ?>"
     data-em-updated="<?php echo h(t('Events updated.')); ?>"
     data-em-error="<?php echo h(t('Events could not be loaded. Please try again later.')); ?>">

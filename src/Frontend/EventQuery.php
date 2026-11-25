@@ -18,6 +18,7 @@ final class EventQuery
     public const GUID = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
     public const PER_PAGE = 10;
     public const MAX_PAGE = 500;
+    public const KINDS = ['event', 'activity'];
 
     public function __construct(
         public readonly DateTimeImmutable $month,
@@ -25,6 +26,11 @@ final class EventQuery
         public readonly ?string $locationId = null,
         public readonly ?string $tagId = null,
         public readonly int $page = 1,
+        public readonly ?string $ageGroupId = null,
+        /** Price filter: true free, false paid, null either. */
+        public readonly ?bool $free = null,
+        /** Block setting: 'event', 'activity', or null for both. */
+        public readonly ?string $kind = null,
     ) {}
 
     private static function month(mixed $value): ?DateTimeImmutable
@@ -55,8 +61,17 @@ final class EventQuery
         return max(1, min(self::MAX_PAGE, (int) $value));
     }
 
+    private static function free(mixed $value): ?bool
+    {
+        return match ($value) {
+            'free' => true,
+            'paid' => false,
+            default => null,
+        };
+    }
+
     /**
-     * @param array<string,mixed> $input raw $_GET-style array (keys: month, type, location, tag, page)
+     * @param array<string,mixed> $input raw $_GET-style array (keys: month, type, location, tag, page, age, price, kind)
      */
     public static function fromArray(array $input, ?DateTimeImmutable $now = null): self
     {
@@ -68,6 +83,9 @@ final class EventQuery
             self::guid($input['location'] ?? null),
             self::guid($input['tag'] ?? null),
             self::page($input['page'] ?? null),
+            self::guid($input['age'] ?? null),
+            self::free($input['price'] ?? null),
+            in_array($input['kind'] ?? null, self::KINDS, true) ? $input['kind'] : null,
         );
     }
 
@@ -93,6 +111,8 @@ final class EventQuery
             'type' => $this->typeId,
             'location' => $this->locationId,
             'tag' => $this->tagId,
+            'age' => $this->ageGroupId,
+            'price' => $this->free === null ? null : ($this->free ? 'free' : 'paid'),
             'page' => ($page ?? 1) > 1 ? (string) $page : null,
         ], fn($v) => $v !== null);
     }

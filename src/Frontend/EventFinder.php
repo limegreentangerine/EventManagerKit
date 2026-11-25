@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace EventManagerKit\Frontend;
 
 use DateTimeImmutable;
+use EventManagerKit\Activities;
 use EventManagerKit\Recurrence\{Expander, Occurrence};
 use Doctrine\ORM\{EntityManagerInterface, QueryBuilder};
-use EventManagerKit\Entity\{Event, EventContent, EventTag, EventType, Location};
+use EventManagerKit\Entity\{AgeGroup, Event, EventContent, EventTag, EventType, Location};
 
 /**
  * Reads the events visitors may see: published only, soonest first.
@@ -45,6 +46,16 @@ final class EventFinder
         return new EventPage(array_slice($all, $offset, $limit), count($all) > $offset + $limit);
     }
 
+    /** Only events or only activities; null keeps both. */
+    private static function kind(QueryBuilder $qb, ?string $kind): QueryBuilder
+    {
+        if ($kind !== null) {
+            $qb->andWhere('e.activity = :activity')->setParameter('activity', $kind === 'activity');
+        }
+
+        return $qb;
+    }
+
     /**
      * Every published event (sitemap).
      *
@@ -58,10 +69,10 @@ final class EventFinder
     /**
      * Occurrences that have not finished yet.
      */
-    public function upcoming(int $limit, ?DateTimeImmutable $now = null, bool $featuredOnly = false): EventPage
+    public function upcoming(int $limit, ?DateTimeImmutable $now = null, bool $featuredOnly = false, ?string $kind = null): EventPage
     {
         $now ??= new DateTimeImmutable();
-        $qb = $this->base()
+        $qb = self::kind($this->base(), $kind)
             ->andWhere('e.endDate >= :now OR e.recurrence IS NOT NULL')
             ->setParameter('now', $now);
         if ($featuredOnly) {
@@ -94,7 +105,7 @@ final class EventFinder
      */
     public function forMonth(EventQuery $query): EventPage
     {
-        $qb = $this->base()
+        $qb = self::kind($this->base(), $query->kind)
             ->andWhere('e.startDate <= :monthEnd AND (e.endDate >= :monthStart OR e.recurrence IS NOT NULL)')
             ->setParameter('monthStart', $query->monthStart())
             ->setParameter('monthEnd', $query->monthEnd());
@@ -110,6 +121,12 @@ final class EventFinder
         }
         if ($query->tagId) {
             $qb->innerJoin('e.tags', 't')->andWhere('t.id = :tag')->setParameter('tag', $query->tagId);
+        }
+        if ($query->ageGroupId) {
+            $qb->innerJoin('e.ageGroups', 'a')->andWhere('a.id = :age')->setParameter('age', $query->ageGroupId);
+        }
+        if ($query->free !== null) {
+            $qb->andWhere('e.free = :free')->setParameter('free', $query->free);
         }
 
         return $this->page($qb->getQuery()->getResult(), $query->monthStart(), $query->monthEnd(), EventQuery::PER_PAGE, ($query->page - 1) * EventQuery::PER_PAGE);
@@ -138,7 +155,9 @@ final class EventFinder
     /**
      * Options for the filter selects, as id => name in the displayed locale.
      *
-     * @return array{types:array<string,string>,locations:array<string,string>,tags:array<string,string>}
+     * Age groups (in their set order) only when activities are enabled.
+     *
+     * @return array{types:array<string,string>,locations:array<string,string>,tags:array<string,string>,ageGroups:array<string,string>}
      */
     public function filterOptions(): array
     {
@@ -158,6 +177,10 @@ final class EventFinder
             'types' => $names(EventType::class),
             'locations' => $names(Location::class, true),
             'tags' => $names(EventTag::class),
+            'ageGroups' => Activities::enabled() ? array_column(array_map(
+                fn(AgeGroup $g) => [$g->getID(), $g->getName()],
+                $this->em->getRepository(AgeGroup::class)->findBy([], ['sortOrder' => 'ASC']),
+            ), 1, 0) : [],
         ];
     }
 }

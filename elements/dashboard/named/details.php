@@ -35,6 +35,16 @@ if ($entity) {
         </fieldset>
     <?php } ?>
 
+    <?php if (isset($sortOrder)) { ?>
+        <fieldset>
+            <div class="form-group mb-3">
+                <?php echo $form->label('sortOrder', t('Order')); ?>
+                <?php echo $form->number('sortOrder', $sortOrder, ['step' => 1]); ?>
+                <div class="form-text"><?php echo t('Lower numbers are listed first.'); ?></div>
+            </div>
+        </fieldset>
+    <?php } ?>
+
     <?php if (!empty($place)) { ?>
         <fieldset>
             <legend><?php echo t('Place'); ?></legend>

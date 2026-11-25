@@ -40,7 +40,7 @@ final class EventsEndpoint
     private function list(EventFinder $finder, EndpointRequest $request): string
     {
         return $this->render('frontend/event_list', [
-            'occurrences' => $finder->upcoming($request->limit)->occurrences,
+            'occurrences' => $finder->upcoming($request->limit, null, false, $request->query->kind)->occurrences,
             'locale' => $request->locale,
         ]);
     }
@@ -48,7 +48,7 @@ final class EventsEndpoint
     private function featured(EventFinder $finder, EndpointRequest $request): string
     {
         return $this->render('frontend/event_list', [
-            'occurrences' => $finder->upcoming($request->limit, null, true)->occurrences,
+            'occurrences' => $finder->upcoming($request->limit, null, true, $request->query->kind)->occurrences,
             'locale' => $request->locale,
             'emptyText' => t('There are no featured events.'),
         ]);

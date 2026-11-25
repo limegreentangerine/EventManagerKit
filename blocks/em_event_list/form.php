@@ -9,4 +9,10 @@
         <?php echo $form->label('numEvents', t('Number of events')); ?>
         <?php echo $form->number('numEvents', $numEvents ?? 5, ['min' => 1, 'max' => 50]); ?>
     </div>
+    <?php if (!empty($activitiesEnabled)) { ?>
+        <div class="form-group mb-3">
+            <?php echo $form->label('kind', t('Show')); ?>
+            <?php echo $form->select('kind', ['' => t('Events and activities'), 'event' => t('Events only'), 'activity' => t('Activities only')], $kind ?? ''); ?>
+        </div>
+    <?php } ?>
 </fieldset>

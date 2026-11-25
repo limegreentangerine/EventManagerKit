@@ -3,7 +3,10 @@
 
 use EventManagerKit\Frontend\EventDisplay;
 
-$description = $event->getContent($locale)?->getDescription();
+// An activity's short summary, when set, stands in for the full description in lists.
+$description = $event->getContent($locale)?->getSummary() ?: $event->getContent($locale)?->getDescription();
+$ageGroups = $event->getAgeGroups();
+$price = EventDisplay::price($event, $locale);
 // Link only when the event has a slug (events saved before slugs existed have none).
 $slug = $event->getSlug($locale);
 ?>
@@ -19,13 +22,19 @@ $slug = $event->getSlug($locale);
     <?php if ($event->getLocation()) { ?>
         <p class="em-event__location"><?php echo h($event->getLocation()->getFullName($locale)); ?></p>
     <?php } ?>
-    <?php if ($event->getType() || count($event->getTags())) { ?>
+    <?php if ($price) { ?>
+        <p class="em-event__price"><?php echo h($price); ?></p>
+    <?php } ?>
+    <?php if ($event->getType() || count($event->getTags()) || $ageGroups) { ?>
         <p class="em-event__labels">
             <?php if ($event->getType()) { ?>
                 <span class="em-event__type"><?php echo h($event->getType()->getName($locale)); ?></span>
             <?php } ?>
             <?php foreach ($event->getTags() as $tag) { ?>
                 <span class="em-event__tag"><?php echo h($tag->getName($locale)); ?></span>
+            <?php } ?>
+            <?php foreach ($ageGroups as $group) { ?>
+                <span class="em-event__age"><?php echo h($group->getName($locale)); ?></span>
             <?php } ?>
         </p>
     <?php } ?>

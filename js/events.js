@@ -10,7 +10,7 @@
 (function () {
 	'use strict';
 	// Query-string keys the calendar understands; anything else is ignored.
-	const KEYS = ['month', 'type', 'location', 'tag', 'page'];
+	const KEYS = ['month', 'type', 'location', 'tag', 'age', 'price', 'page'];
 	function load(section, search, push) {
 		var _a;
 		const content = section.querySelector('.em-events__content');
@@ -24,6 +24,11 @@
 			'locale',
 			(_a = section.getAttribute('data-em-locale')) !== null && _a !== void 0 ? _a : ''
 		);
+		// Block setting (events, activities or both); not part of the shareable URL.
+		const kind = section.getAttribute('data-em-kind');
+		if (kind) {
+			params.set('kind', kind);
+		}
 		if (view === 'list' || view === 'featured') {
 			params.set('limit', section.getAttribute('data-em-limit') || '');
 		} else if (view === 'event') {

@@ -9,6 +9,9 @@ $start = $p['startDate'] ?? ($entity ? $entity->getStartDate()->format($dateForm
 $end = $p['endDate'] ?? ($entity ? $entity->getEndDate()->format($dateFormat) : '');
 $selectedLocation = (string) ($p['location'] ?? ($entity && $entity->getLocation() ? $entity->getLocation()->getID() : ''));
 $selectedType = (string) ($p['type'] ?? ($entity && $entity->getType() ? $entity->getType()->getID() : ''));
+$isActivity = $formContent ? !empty($p['activity']) : ($entity && $entity->isActivity());
+$free = (string) ($p['free'] ?? ($entity && $entity->isFree() !== null ? (int) $entity->isFree() : ''));
+$selectedAgeGroups = $formContent ? (array) ($p['ageGroups'] ?? []) : ($entity ? array_map(fn($g) => $g->getID(), $entity->getAgeGroups()) : []);
 $selectedTags = $formContent ? (array) ($p['tags'] ?? []) : ($entity ? array_map(fn($t) => $t->getID(), $entity->getTags()->toArray()) : []);
 
 $rule = $entity ? $entity->getRecurrence() : null;
@@ -42,6 +45,13 @@ if ($entity) {
         <?php echo $form->label('featured', t('Featured (shown by the Featured Events block)'), ['class' => 'form-check-label']); ?>
     </div>
 
+    <?php if ($activitiesEnabled) { ?>
+        <div class="form-check mb-4">
+            <?php echo $form->checkbox('activity', '1', $isActivity, ['id' => 'activity']); ?>
+            <?php echo $form->label('activity', t('This is an activity (blocks can list events, activities or both)'), ['class' => 'form-check-label']); ?>
+        </div>
+    <?php } ?>
+
     <fieldset>
         <legend><?php echo t('Content'); ?></legend>
         <?php foreach ($locales as $locale) {
@@ -60,6 +70,13 @@ if ($entity) {
                     <?php echo $form->label('slug_' . $locale, t('URL slug')); ?>
                     <?php echo $form->text('slug[' . $locale . ']', $slug, ['id' => 'slug_' . $locale, 'placeholder' => t('Generated from the name if left blank')]); ?>
                 </div>
+                <?php if ($activitiesEnabled) { ?>
+                    <div class="form-group mb-2">
+                        <?php echo $form->label('summary_' . $locale, t('Summary (optional)')); ?>
+                        <?php echo $form->textarea('summary[' . $locale . ']', $p['summary'][$locale] ?? ($content ? (string) $content->getSummary() : ''), ['id' => 'summary_' . $locale, 'rows' => 2, 'maxlength' => 500]); ?>
+                        <div class="form-text"><?php echo t('Shown in lists instead of the description.'); ?></div>
+                    </div>
+                <?php } ?>
                 <div class="form-group">
                     <?php echo $form->label('description_' . $locale, t('Description')); ?>
                     <?php echo $form->textarea('description[' . $locale . ']', $description, ['id' => 'description_' . $locale, 'rows' => 4]); ?>
@@ -129,6 +146,26 @@ if ($entity) {
             </div>
             <?php echo $form->selectMultiple('tags', $tagOptions, $selectedTags); ?>
         </div>
+        <?php if ($activitiesEnabled) { ?>
+            <div class="form-group mb-3">
+                <div class="d-flex justify-content-between align-items-baseline">
+                    <?php echo $form->label('ageGroups', t('Age Groups')); ?>
+                    <button type="button" class="btn btn-secondary btn-sm" data-new="age_groups" aria-label="<?php echo h(t('+ New age group')); ?>" data-target="#ageGroups"><?php echo t('+ New'); ?></button>
+                </div>
+                <?php echo $form->selectMultiple('ageGroups', $ageGroupOptions, $selectedAgeGroups); ?>
+            </div>
+            <div class="form-group mb-3">
+                <?php echo $form->label('free', t('Price')); ?>
+                <?php echo $form->select('free', ['' => t('(not stated)'), '1' => t('Free'), '0' => t('Paid')], $free); ?>
+            </div>
+            <?php foreach ($locales as $locale) {
+                $content = $entity ? $entity->getContents()->filter(fn($c) => $c->getLocale() === $locale)->first() : null; ?>
+                <div class="form-group mb-3">
+                    <?php echo $form->label('priceText_' . $locale, t('Price details (%s, optional)', $locale)); ?>
+                    <?php echo $form->text('priceText[' . $locale . ']', $p['priceText'][$locale] ?? ($content ? (string) $content->getPriceText() : ''), ['id' => 'priceText_' . $locale, 'maxlength' => 255, 'placeholder' => t('e.g. £3 per session')]); ?>
+                </div>
+            <?php } ?>
+        <?php } ?>
     </fieldset>
 
     <fieldset class="mt-4">

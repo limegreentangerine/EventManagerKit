@@ -10,13 +10,20 @@ namespace `EventManagerKit`.
 ## Features
 
 - **Dashboard** under `/dashboard/event_manager/*`: events, types, tags,
-  locations and CSV import, each with search.
+  locations, CSV import and settings, each list with search.
 - **Multilingual**: names and text are stored per locale and fall back to the
   same language, the default locale, then any translation.
 - **Repeating events**: daily, weekly or monthly rules with skipped dates,
   expanded into occurrences.
 - **Locations**: address, coordinates, online URL, and an optional Mapbox map
   when the `mapbox` package is installed.
+- **Activities** (optional, off by default; turn on under Event Manager >
+  Settings): an activity is an event with the "This is an activity" flag,
+  age groups, free/paid with per-language price details, and a per-language
+  summary shown in lists. Enabling adds an Age Groups dashboard page, age and
+  price filters on the calendar, and a "Show: events / activities / both"
+  option on the calendar and list blocks. Turning it off hides all of this
+  but deletes nothing. This replaces the older `activity_manager` package.
 - **Blocks**: `event_calendar`, `em_event_list`, `em_featured_events` (events
   with the Featured flag) and `em_single_event` (one chosen event). They load events by
   `fetch` from `GET /ajax/events-manager/events`, so pages stay cacheable.

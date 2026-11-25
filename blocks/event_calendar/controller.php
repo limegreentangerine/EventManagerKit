@@ -4,10 +4,11 @@ namespace Concrete\Package\EventManagerKit\Block\EventCalendar;
 
 defined('C5_EXECUTE') or die('Access Denied.');
 
+use EventManagerKit\Activities;
 use Concrete\Core\Support\Facade\Url;
 use Concrete\Core\Block\BlockController;
-use EventManagerKit\Frontend\EventsEndpoint;
 use EventManagerKit\Translation\LocaleContext;
+use EventManagerKit\Frontend\{EventQuery, EventsEndpoint};
 
 class Controller extends BlockController
 {
@@ -30,6 +31,8 @@ class Controller extends BlockController
 
     public function add()
     {
+        $this->set('activitiesEnabled', Activities::enabled());
+        $this->set('kind', '');
         $this->set('title', '');
         $this->set('showFilters', true);
     }
@@ -40,11 +43,19 @@ class Controller extends BlockController
         $this->requireAsset('event_manager_kit/events');
         $this->set('endpoint', (string) Url::to(EventsEndpoint::PATH));
         $this->set('locale', LocaleContext::active());
+        // Ignore the setting while activities are switched off.
+        $this->set('kind', Activities::enabled() ? (string) $this->kind : '');
+    }
+
+    public function edit()
+    {
+        $this->set('activitiesEnabled', Activities::enabled());
     }
 
     public function save($args)
     {
         $args['title'] = trim((string) ($args['title'] ?? ''));
+        $args['kind'] = in_array($args['kind'] ?? '', EventQuery::KINDS, true) ? $args['kind'] : '';
         $args['showFilters'] = empty($args['showFilters']) ? 0 : 1;
 
         parent::save($args);

@@ -47,6 +47,20 @@ class EventContent extends GuidEntity
      */
     protected ?string $slug = null;
 
+    /**
+     * Short description for listings (activities).
+     *
+     * @ORM\Column(type="string", length=500, nullable=true)
+     */
+    protected ?string $summary = null;
+
+    /**
+     * Price details, e.g. "£3 per session" (activities).
+     *
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    protected ?string $priceText = null;
+
     public function getLocale(): string
     {
         return $this->locale;
@@ -91,6 +105,30 @@ class EventContent extends GuidEntity
     public function setSlug(?string $slug): static
     {
         $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getSummary(): ?string
+    {
+        return $this->summary;
+    }
+
+    public function setSummary(?string $summary): static
+    {
+        $this->summary = $summary;
+
+        return $this;
+    }
+
+    public function getPriceText(): ?string
+    {
+        return $this->priceText;
+    }
+
+    public function setPriceText(?string $priceText): static
+    {
+        $this->priceText = $priceText;
 
         return $this;
     }

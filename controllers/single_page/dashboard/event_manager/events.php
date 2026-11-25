@@ -3,6 +3,7 @@
 namespace Concrete\Package\EventManagerKit\Controller\SinglePage\Dashboard\EventManager;
 
 use DateTimeImmutable;
+use EventManagerKit\Activities;
 use EventManagerKit\Recurrence\Rule;
 use Concrete\Core\Permission\Checker;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,7 +12,7 @@ use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\File\{File, Type\Type as FileType};
 use EventManagerKit\Slug\{SlugGenerator, SlugService};
 use Concrete\Core\Page\Controller\DashboardPageController;
-use EventManagerKit\Entity\{Event, EventTag, EventType, Location};
+use EventManagerKit\Entity\{AgeGroup, Event, EventTag, EventType, Location};
 use Concrete\Package\EventManagerKit\Controller\Search\Events as SearchController;
 
 class Events extends DashboardPageController
@@ -27,6 +28,13 @@ class Events extends DashboardPageController
         $this->set('typeOptions', ['' => t('(none)')] + $this->options(EventType::class));
         $this->set('locationOptions', ['' => t('(none)')] + $this->options(Location::class, true));
         $this->set('tagOptions', $this->options(EventTag::class));
+        $activities = Activities::enabled();
+        $this->set('activitiesEnabled', $activities);
+        $ageGroups = [];
+        foreach ($activities ? $this->em->getRepository(AgeGroup::class)->findBy([], ['sortOrder' => 'ASC']) : [] as $group) {
+            $ageGroups[$group->getID()] = $group->getName();
+        }
+        $this->set('ageGroupOptions', $ageGroups);
     }
 
     /**
@@ -224,6 +232,33 @@ class Events extends DashboardPageController
             }
         }
 
+        // Activity fields are only on the form while activities are enabled; otherwise leave them as they are.
+        $activities = Activities::enabled();
+        $ageGroups = [];
+        $summaries = $priceTexts = [];
+        if ($activities) {
+            foreach ((array) ($post['ageGroups'] ?? []) as $groupId) {
+                if ($group = $this->lookup(AgeGroup::class, $groupId, t('age group'))) {
+                    $ageGroups[] = $group;
+                }
+            }
+            if (!in_array((string) ($post['free'] ?? ''), ['', '1', '0'], true)) {
+                $this->error->add(t('Unknown price option.'));
+            }
+            $postedSummaries = (array) ($post['summary'] ?? []);
+            $postedPrices = (array) ($post['priceText'] ?? []);
+            foreach (LocaleContext::siteLocales() as $locale) {
+                $summaries[$locale] = trim((string) ($postedSummaries[$locale] ?? '')) ?: null;
+                $priceTexts[$locale] = trim((string) ($postedPrices[$locale] ?? '')) ?: null;
+                if (mb_strlen((string) $summaries[$locale]) > 500) {
+                    $this->error->add(t('The summary for %s must be 500 characters or fewer.', $locale));
+                }
+                if (mb_strlen((string) $priceTexts[$locale]) > 255) {
+                    $this->error->add(t('The price details for %s must be 255 characters or fewer.', $locale));
+                }
+            }
+        }
+
         $imageID = $this->mediaFile($post['imageID'] ?? 0, FileType::T_IMAGE, t('image'));
         $videoID = $this->mediaFile($post['videoID'] ?? 0, FileType::T_VIDEO, t('video'));
         $posterID = $this->mediaFile($post['videoPosterID'] ?? 0, FileType::T_IMAGE, t('video poster'));
@@ -242,6 +277,14 @@ class Events extends DashboardPageController
                 } elseif ($content = $event->getContents()->filter(fn($c) => $c->getLocale() === $locale)->first()) {
                     // Name cleared for a language: drop that translation (the fallback covers it).
                     $event->removeContent($content);
+                }
+            }
+
+            if ($activities) {
+                $free = (string) ($post['free'] ?? '');
+                $event->setActivity(!empty($post['activity']))->setFree($free === '' ? null : $free === '1')->setAgeGroups($ageGroups);
+                foreach ($summaries as $locale => $summary) {
+                    $event->setActivityContent($locale, $summary, $priceTexts[$locale]);
                 }
             }
 

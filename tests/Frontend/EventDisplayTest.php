@@ -55,4 +55,19 @@ final class EventDisplayTest extends TestCase
 
         $this->assertSame('27 Nov 2026, 10:00 – 12:30', EventDisplay::dateRange($event, 'en_GB', new DateTimeImmutable('2026-11-27 10:00'), new DateTimeImmutable('2026-11-27 12:30')));
     }
+
+    public function testPrice(): void
+    {
+        $event = $this->event('2026-11-20 10:00', '2026-11-20 11:00')->setContent('en_GB', 'Swim')->setContent('cy_GB', 'Nofio');
+
+        $this->assertNull(EventDisplay::price($event, 'en_GB'));
+        $this->assertSame('Free', EventDisplay::price($event->setFree(true), 'en_GB'));
+        $this->assertSame('Paid', EventDisplay::price($event->setFree(false), 'en_GB'));
+
+        $event->setActivityContent('en_GB', null, '£3 per session')->setActivityContent('cy_GB', null, '£3 y sesiwn');
+        $this->assertSame('£3 per session', EventDisplay::price($event, 'en_GB'));
+        $this->assertSame('£3 y sesiwn', EventDisplay::price($event, 'cy_GB'));
+        $this->assertSame('Free (£3 per session)', EventDisplay::price($event->setFree(true), 'en_GB'));
+        $this->assertSame('£3 per session', EventDisplay::price($event->setFree(null), 'en_GB'));
+    }
 }

@@ -51,6 +51,25 @@ final class EventDisplay
         return $every . ' ' . t('until %s', $day->format(new \DateTimeImmutable($rule->until)));
     }
 
+    /**
+     * Price line for an activity: the price text, else "Free"/"Paid", else
+     * null (nothing stated). Free stays "Free" even with text, e.g. "Free (booking required)".
+     */
+    public static function price(Event $event, string $locale): ?string
+    {
+        $text = trim((string) $event->getContent($locale)?->getPriceText());
+        $label = match ($event->isFree()) {
+            true => t('Free'),
+            false => t('Paid'),
+            null => null,
+        };
+        if ($text === '') {
+            return $label;
+        }
+
+        return $event->isFree() ? $label . ' (' . $text . ')' : $text;
+    }
+
     public static function monthTitle(\DateTimeImmutable $month, string $locale): string
     {
         return (new IntlDateFormatter($locale, IntlDateFormatter::NONE, IntlDateFormatter::NONE, null, null, 'LLLL y'))->format($month);

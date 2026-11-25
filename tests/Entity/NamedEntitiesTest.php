@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace EventManagerKit\Tests\Entity;
 
 use PHPUnit\Framework\TestCase;
-use EventManagerKit\Entity\{EventTag, EventType, Location};
+use EventManagerKit\Entity\{AgeGroup, Event, EventTag, EventType, Location};
 
 final class NamedEntitiesTest extends TestCase
 {
@@ -36,5 +36,19 @@ final class NamedEntitiesTest extends TestCase
         // Child has no Welsh name: it is blank-safe via fallback, parent uses cy.
         $this->assertSame('Neuadd > Stage', $stage->getFullName('cy_GB'));
         $this->assertSame('Main hall', $hall->getFullName('en_GB'));
+    }
+
+    public function testEventAgeGroupsFollowSortOrderWithoutDuplicates(): void
+    {
+        $adults = (new AgeGroup())->setName('en_GB', 'Adults')->setSortOrder(3);
+        $under5 = (new AgeGroup())->setName('en_GB', 'Under 5s')->setSortOrder(1);
+        $kids = (new AgeGroup())->setName('en_GB', '5-11')->setName('cy_GB', '5-11 oed')->setSortOrder(2);
+
+        $event = (new Event())->setAgeGroups([$adults, $under5, $kids, $under5]);
+
+        $this->assertSame([$under5, $kids, $adults], $event->getAgeGroups());
+        $this->assertSame('5-11 oed', $kids->getName('cy_GB'));
+        $this->assertSame($kids, $kids->getNames()->first()->getAgeGroup());
+        $this->assertSame([$adults], $event->setAgeGroups([$adults])->getAgeGroups());
     }
 }

@@ -12,6 +12,8 @@ if (in_array($controller->getTask(), ['add', 'details', 'save'])) {
         'typeOptions' => $typeOptions,
         'locationOptions' => $locationOptions,
         'tagOptions' => $tagOptions,
+        'activitiesEnabled' => $activitiesEnabled,
+        'ageGroupOptions' => $ageGroupOptions,
         'view' => $view,
     ], 'event_manager_kit');
 } else {

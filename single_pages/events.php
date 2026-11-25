@@ -110,6 +110,20 @@ if ($image) {
             <dd><?php echo h($event->getType()->getName($locale)); ?></dd>
         <?php } ?>
 
+        <?php if ($ageGroups = $event->getAgeGroups()) { ?>
+            <dt><?php echo t('Ages'); ?></dt>
+            <dd>
+                <?php foreach ($ageGroups as $group) { ?>
+                    <span class="em-event__age"><?php echo h($group->getName($locale)); ?></span>
+                <?php } ?>
+            </dd>
+        <?php } ?>
+
+        <?php if ($price = EventDisplay::price($event, $locale)) { ?>
+            <dt><?php echo t('Price'); ?></dt>
+            <dd><?php echo h($price); ?></dd>
+        <?php } ?>
+
         <?php if (count($event->getTags())) { ?>
             <dt><?php echo t('Tags'); ?></dt>
             <dd>
